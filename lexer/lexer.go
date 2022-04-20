@@ -69,7 +69,7 @@ type Line struct {
         Indent int
 
         // Tokens is an array of all tokens extracted from the line.
-        Tokens []Token
+        Tokens []*Token
 }
 
 type Token struct {
@@ -199,7 +199,7 @@ func (line *Line) add (
         stringValue string,
         value       interface {},
 ) {
-        line.Tokens = append (line.Tokens, Token {
+        line.Tokens = append (line.Tokens, &Token {
                 Kind:        kind,
                 StringValue: stringValue,
                 Value:       value,
@@ -207,7 +207,7 @@ func (line *Line) add (
         })
 }
 
-func (line *Line) addExisting (token Token) {
+func (line *Line) addExisting (token *Token) {
         line.Tokens = append (line.Tokens, token)
 }
 
@@ -316,7 +316,7 @@ func (lexer *Lexer) tokenizeNumber () {
                         token.StringValue, radix, 64)
                 token.Value = parsedNumber
         }
-        line.addExisting(token)
+        line.addExisting(&token)
 }
 
 func (lexer *Lexer) tokenizeString (terminator rune) {
@@ -355,7 +355,7 @@ func (lexer *Lexer) tokenizeString (terminator rune) {
         } else {
                 token.Value = token.StringValue
         }
-        line.addExisting(token)
+        line.addExisting(&token)
 }
 
 var escapeCodeMap = map[rune] rune {
@@ -472,7 +472,7 @@ func (lexer *Lexer) tokenizeSymbol () {
                 token.Kind = TokenKindSymbol
         }
 
-        line.addExisting(token)
+        line.addExisting(&token)
 }
 
 func (lexer *Lexer) tokenizeMulti () {
@@ -505,7 +505,7 @@ func (lexer *Lexer) tokenizeMulti () {
                 token.Value = token.StringValue
         }
 
-        line.addExisting(token)
+        line.addExisting(&token)
 }
 
 func (lexer *Lexer) skipWhitespace () {
@@ -567,7 +567,7 @@ func (lexer *Lexer) printFatal (err error) {
         lexer.errorCount ++
         fmt.Println ("\033[31mXXX\033[0m", "\033[90min\033[0m", lexer.fileName,
                 "\033[90mof\033[0m", lexer.moduleName)
-        fmt.Println("   ", "could not parse module -", err)
+        fmt.Println("   ", "could not tokenize module -", err)
 }
 
 func (lexer *Lexer) printMistake (

@@ -3,11 +3,11 @@ package main
 import (
         "os"
         "fmt"
-        "github.com/sashakoshka/arf/document"
+        "github.com/sashakoshka/arf/parser"
 )
 
 func main () {
-        module, nWarn, nError, err := document.Parse("tests/hello")
+        module, nWarn, nError, err := parser.Parse("tests/hello")
         if err != nil { os.Exit(1) }
         module.Dump()
         fmt.Println("(i)", nWarn, "warnings and", nError, "errors")

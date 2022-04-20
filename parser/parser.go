@@ -1,4 +1,4 @@
-package document
+package parser
 
 import (
         "os"
@@ -7,6 +7,7 @@ import (
         "bufio"
         "errors"
         "strings"
+        "strconv"
         "io/ioutil"
         "github.com/sashakoshka/arf/lexer"
         "github.com/sashakoshka/arf/validate"
@@ -24,8 +25,11 @@ type Parser struct {
         fileName   string
 
         lines      []*lexer.Line
-        lineNumber int
+        lineIndex  int
         line       *lexer.Line
+
+        token      *lexer.Token
+        tokenIndex int
         
         module     *Module
 
@@ -161,6 +165,9 @@ func (parser *Parser) parseMeta () (err error) {
         return
 }
 
+/* parseBody parses the body of an arf file. This contains sections, which have
+ * code in them.
+ */
 func (parser *Parser) parseBody () (err error) {
         return
 }
@@ -169,26 +176,68 @@ func (parser *Parser) parseBody () (err error) {
  * end of the file was reached.
  */
 func (parser *Parser) nextLine () (done bool) {
-        
-        return
+        parser.lineIndex ++
+        parser.tokenIndex = 0
+        if parser.lineIndex >= len(parser.lines) {
+                parser.line = nil
+                return true
+        }
+        parser.line = parser.lines[parser.lineIndex]
+        parser.token = parser.line.Tokens[parser.tokenIndex]
+        return false
 }
 
-func (parser *Parser) printWarning (column int, cause... interface {}) {
+/* nextToken advances the parser to the next token, and returns whether or not
+ * the end of the line was reached.
+ */
+func (parser *Parser) nextToken () (done bool) {
+        parser.tokenIndex ++
+        if parser.tokenIndex >= len(parser.line.Tokens) {
+                parser.token = nil
+                return true
+        }
+        parser.token = parser.line.Tokens[parser.tokenIndex]
+        return false
+}
+
+func (parser *Parser) printWarning (column int, cause ...interface {}) {
         parser.warnCount ++
-        fmt.Println("!!!", "in", parser.fileName, "of", parser.module.name)
-        fmt.Println("   ", parser.lineNumber, ":",  column, parser.line)
-        fmt.Println("   ", cause)
+        parser.printMistake("\033[33m!!!\033[0m", column, cause...)
 }
 
-func (parser *Parser) printError (column int, cause... interface {}) {
+func (parser *Parser) printError (column int, cause ...interface {}) {
         parser.errorCount ++
-        fmt.Println("ERR", "in", parser.fileName, "of", parser.module.name)
-        fmt.Println("   ", parser.lineNumber, ":",  column, parser.line)
-        fmt.Println("   ", cause)
+        parser.printMistake("\033[31mERR\033[0m", column, cause...)
 }
 
 func (parser *Parser) printFatal (err error) {
         parser.errorCount ++
-        fmt.Println("XXX", "in", parser.fileName, "of", parser.module.name)
+        fmt.Println ("\033[31mXXX\033[0m", "\033[90min\033[0m", parser.fileName,
+                "\033[90mof\033[0m", parser.module.name)
         fmt.Println("   ", "could not parse module -", err)
+}
+
+func (parser *Parser) printMistake (
+        kind string,
+        column int,
+        cause ...interface{},
+) {
+        actColumn := column + parser.line.Indent * 8
+        
+        fmt.Println (
+                kind, "\033[90min\033[0m", parser.fileName,
+                "\033[34m" + strconv.Itoa(parser.line.Row) + ":" +
+                strconv.Itoa(actColumn),
+                "\033[90mof\033[0m", parser.module.name)
+        fmt.Println("   ", parser.line.Value)
+
+        fmt.Print("    ")
+        for column > 0 {
+                fmt.Print("-")
+                column --
+        }
+        fmt.Println("^")
+        
+        fmt.Print("    ")
+        fmt.Println(cause...)
 }
