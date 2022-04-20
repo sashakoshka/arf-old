@@ -1,0 +1,12 @@
+:arf
+module several
+require "io"
+---
+
+func rr main
+        < status:Int
+        ---
+        [io.println "Hello world!"]
+        [io.println 'a']
+        [= status 0b101]
+

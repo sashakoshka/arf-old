@@ -1,0 +1,12 @@
+:arf
+module hello
+require "io"
+---
+
+func rr main
+        > argc:Int
+        > argv:{String}
+        < status:Int
+        ---
+        [io.println "Hello, world!"]
+

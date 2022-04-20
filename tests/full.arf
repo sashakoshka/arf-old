@@ -1,0 +1,36 @@
+:arf
+module main
+require "io"
+---
+
+# this is a global variable
+data wn helloText:String "Hello, world!"
+
+# this is a struct definition
+type rr Greeter:Obj
+        # "Hi." is a string constant. all Greeters will be initialized with a
+        # pointer to it.
+        wr text:String "Hi."
+
+# this is a function
+func rr main
+        > argc:Int
+        > argv:{String}
+        < status:Int 0
+        ---
+        [let greeter:Greeter]
+        [greeter.setText helloText]
+        [greeter.greet]
+
+# this is a member function
+func rr greet
+        @ greeter:{Greeter}
+        ---
+        [io.println greeter.text]
+
+# this is mutator member function
+func rr setText
+        @ greeter:{Greeter}
+        > text:String
+        ---
+        [= greeter.text text]
