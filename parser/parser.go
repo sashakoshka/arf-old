@@ -173,7 +173,55 @@ func getModuleName (filePath string) (name string) {
  * name, and other miscellaneous fields such as author and license.
  */
 func (parser *Parser) parseMeta () (err error) {
-        fmt.Println(parser.expect(lexer.TokenKindName))
+        for {
+                done := parser.nextLine()
+                if done {
+                        return errSurpriseEOF
+                        parser.printFatal(errSurpriseEOF)
+                }
+
+                if !parser.expect (
+                        lexer.TokenKindName,
+                        lexer.TokenKindSeparator,
+                ) { continue }
+
+                if parser.token.Kind == lexer.TokenKindSeparator {
+                        return
+                }
+
+                key := parser.token.Value
+
+                parser.nextToken()
+                if !parser.expect (
+                        lexer.TokenKindName,
+                        lexer.TokenKindString,
+                ) { continue }
+
+                switch key {
+                case "module":
+                         // no-op, we already know this info
+                        break
+                case "author":
+                        parser.module.author = parser.token.Value.(string)
+                        break
+                case "license":
+                        parser.module.license = parser.token.Value.(string)
+                        break
+                case "require":
+                        parser.module.imports = append (
+                                parser.module.imports,
+                                parser.token.Value.(string),
+                        )
+                        break
+                default:
+                        parser.printWarning(0, "uknown metadata field")
+                }
+
+                // the rest of the line should be empty
+                parser.nextToken()
+                parser.expect()
+        }
+        
         return
 }
 
@@ -190,7 +238,7 @@ func (parser *Parser) parseBody () (err error) {
 func (parser *Parser) nextLine () (done bool) {
         parser.lineIndex ++
         parser.tokenIndex = 0
-        if parser.lineIndex >= len(parser.lines) {
+        if parser.endOfFile() {
                 parser.line = nil
                 return true
         }
@@ -199,16 +247,18 @@ func (parser *Parser) nextLine () (done bool) {
         return false
 }
 
+func (parser *Parser) endOfFile () (eof bool) {
+        return parser.lineIndex >= len(parser.lines)
+}
+
 /* expect takes in a number of token kinds. It advances the parser, and returns
  * true if it matches what is expected. Otherwise, it prints an error and
  * returns false. If there are no kinds supplied, it will return true only on
  * end of line.
  */
 func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
-        done := parser.nextToken()
-
         if len(kinds) == 0 {
-                if done {
+                if parser.endOfLine() {
                         return true
                 } else {
                         parser.printError (
@@ -218,7 +268,7 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
                 }
         }
         
-        if done {
+        if parser.endOfLine() {
                 parser.printError(len(parser.line.Runes), errSurpriseEOL)
                 return false
         }
@@ -240,12 +290,16 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
  */
 func (parser *Parser) nextToken () (done bool) {
         parser.tokenIndex ++
-        if parser.tokenIndex >= len(parser.line.Tokens) {
+        if parser.endOfLine() {
                 parser.token = nil
                 return true
         }
         parser.token = parser.line.Tokens[parser.tokenIndex]
         return false
+}
+
+func (parser *Parser) endOfLine () (eol bool) {
+        return parser.tokenIndex >= len(parser.line.Tokens)
 }
 
 func (parser *Parser) printWarning (column int, cause ...interface {}) {
@@ -270,7 +324,7 @@ func (parser *Parser) printMistake (
         column int,
         cause ...interface{},
 ) {
-        actColumn := column + parser.line.Indent * 8
+        actColumn := column + parser.line.Indent * 8 + 1
         
         fmt.Println (
                 kind, "\033[90min\033[0m", parser.fileName,

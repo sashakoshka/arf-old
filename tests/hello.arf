@@ -1,5 +1,6 @@
 :arf
 module hello
+author "Sasha Koshka"
 require "io"
 ---
 
