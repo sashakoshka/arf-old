@@ -14,7 +14,9 @@ import (
 )
 
 var (
+        errEmptyFile   = errors.New("file is devoid of content")
         errSurpriseEOF = errors.New("file terminated unexpectedly")
+        errSurpriseEOL = errors.New("line terminated unexpectedly")
         errNotArf      = errors.New("not an arf file, expected :arf")
 )
 
@@ -106,10 +108,19 @@ func (parser *Parser) parseFile (filePath string) (err error) {
                 parser.module.name)
 
         if err != nil { return err }
+        if len(lines) == 0 {
+                parser.printFatal(errEmptyFile)
+                return errEmptyFile
+        }
 
         parser.lines = lines
         parser.warnCount  += nWarn
         parser.errorCount += nError
+        
+        parser.lineIndex = 0
+        parser.line = parser.lines[parser.lineIndex]
+        parser.tokenIndex = 0
+        parser.token = parser.line.Tokens[parser.tokenIndex]
 
         // parse metadata
         err = parser.parseMeta()
@@ -162,6 +173,7 @@ func getModuleName (filePath string) (name string) {
  * name, and other miscellaneous fields such as author and license.
  */
 func (parser *Parser) parseMeta () (err error) {
+        fmt.Println(parser.expect(lexer.TokenKindName))
         return
 }
 
@@ -184,6 +196,42 @@ func (parser *Parser) nextLine () (done bool) {
         }
         parser.line = parser.lines[parser.lineIndex]
         parser.token = parser.line.Tokens[parser.tokenIndex]
+        return false
+}
+
+/* expect takes in a number of token kinds. It advances the parser, and returns
+ * true if it matches what is expected. Otherwise, it prints an error and
+ * returns false. If there are no kinds supplied, it will return true only on
+ * end of line.
+ */
+func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
+        done := parser.nextToken()
+
+        if len(kinds) == 0 {
+                if done {
+                        return true
+                } else {
+                        parser.printError (
+                                parser.token.Column,
+                                "unexpected token, expected end of line")
+                        return false
+                }
+        }
+        
+        if done {
+                parser.printError(len(parser.line.Runes), errSurpriseEOL)
+                return false
+        }
+
+        for _, kind := range kinds {
+                if parser.token.Kind == kind {
+                        return true
+                }
+        }
+
+        parser.printError (
+                parser.token.Column,
+                "unexpected token")
         return false
 }
 

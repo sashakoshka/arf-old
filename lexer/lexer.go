@@ -58,7 +58,7 @@ type Line struct {
         // Value contains the original text of the line as a string. This
         // information is stored for error reporting purposes.
         Value  string
-        runes  []rune
+        Runes  []rune
 
         // Row is theposition of the line in the file. Again, this is for error
         // reporting.
@@ -183,7 +183,7 @@ func (lexer *Lexer) tokenizeLine () (done bool, err error) {
 
 func (line *Line) ch () (ch rune) {
         if !line.notEnd() { return '\000' }
-        return line.runes[line.column]
+        return line.Runes[line.column]
 }
 
 func (line *Line) nextRune () {
@@ -191,7 +191,7 @@ func (line *Line) nextRune () {
 }
 
 func (line *Line) notEnd () (keepGoing bool) {
-        return line.column < len(line.runes)
+        return line.column < len(line.Runes)
 }
 
 func (line *Line) add (
@@ -539,7 +539,7 @@ func (lexer *Lexer) nextLine () (done bool, ignore bool, err error) {
         }
 
         line.Value = strings.TrimSpace(line.Value)
-        line.runes = []rune(line.Value)
+        line.Runes = []rune(line.Value)
 
         if line.Indent % 8 != 0 {
                 line.Indent /= 8
