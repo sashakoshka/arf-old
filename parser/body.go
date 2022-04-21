@@ -100,8 +100,8 @@ func (parser *Parser) parseBodyTypedef () (section *Typedef, err error) {
         parser.nextToken()
         if !parser.expect() { return nil, parser.skipBodySection() }
 
+        done := parser.nextLine()
         for {
-                done := parser.nextLine()
                 if done || parser.line.Indent == 0 { return }
 
                 member, err := parser.parseBodyData(1)

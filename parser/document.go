@@ -130,36 +130,53 @@ func (module *Module) Dump () {
                         fmt.Print(" ", section.inherits.items, "}")
                 }
                 fmt.Println()
+
+                for _, member := range section.members {
+                        member.Dump(1)
+                }
         }
 
-        for item, section := range module.datas {
-                fmt.Print("data ")
-
-                switch section.modeInternal {
-                        case ModeDeny:  fmt.Print("n")
-                        case ModeRead:  fmt.Print("r")
-                        case ModeWrite: fmt.Print("w")
-                }
-                
-                switch section.modeExternal {
-                        case ModeDeny:  fmt.Print("n")
-                        case ModeRead:  fmt.Print("r")
-                        case ModeWrite: fmt.Print("w")
-                }
-
-                fmt.Print(" ", item + ":")
-                if section.what.points { fmt.Print("{") }
-                fmt.Print(section.what.name)
-                if section.what.points {
-                        fmt.Print(" ", section.what.items, "}")
-                }
-                fmt.Println()
-                
-                for _, value := range section.value {
-                        fmt.Println ("       ", value)
-                }
+        for _, section := range module.datas {
+                section.Dump(0)
         }
 }
+
+func (data *Data) Dump (indent int) {
+        printIndent(indent)
+        if indent == 0 { fmt.Print("data ") }
+
+        switch data.modeInternal {
+                case ModeDeny:  fmt.Print("n")
+                case ModeRead:  fmt.Print("r")
+                case ModeWrite: fmt.Print("w")
+        }
+        
+        switch data.modeExternal {
+                case ModeDeny:  fmt.Print("n")
+                case ModeRead:  fmt.Print("r")
+                case ModeWrite: fmt.Print("w")
+        }
+
+        fmt.Print(" ", data.name + ":")
+        if data.what.points { fmt.Print("{") }
+        fmt.Print(data.what.name)
+        if data.what.points {
+                fmt.Print(" ", data.what.items, "}")
+        }
+        fmt.Println()
+        
+        for _, value := range data.value {
+                printIndent(indent + 1)
+                fmt.Println (value)
+        }
+}
+
+func printIndent (level int) {
+        for level > 0 {
+                level --
+                fmt.Print("        ")
+        }
+} 
 
 func (module *Module) addData (data *Data) (err error) {
         if data == nil { return }
