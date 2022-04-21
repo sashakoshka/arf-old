@@ -15,6 +15,7 @@ import (
 
 var (
         errEmptyFile   = errors.New("file is devoid of content")
+        errBadIndent   = errors.New("this line should not be indented")
         errSurpriseEOF = errors.New("file terminated unexpectedly")
         errSurpriseEOL = errors.New("line terminated unexpectedly")
         errNotArf      = errors.New("not an arf file, expected :arf")
@@ -68,9 +69,9 @@ func Parse (
                 directory: moduleDir,
                 module:    &Module {
                         name:      moduleBase,
-                        functions: make(map[string] Function),
-                        typedefs:  make(map[string] Typedef),
-                        datas:     make(map[string] Data),
+                        functions: make(map[string] *Function),
+                        typedefs:  make(map[string] *Typedef),
+                        datas:     make(map[string] *Data),
                 },
         }
 
@@ -169,69 +170,6 @@ func getModuleName (filePath string) (name string) {
         return ""
 }
 
-/* parseMeta parses the metadata header of an arf file. This contains the module
- * name, and other miscellaneous fields such as author and license.
- */
-func (parser *Parser) parseMeta () (err error) {
-        for {
-                done := parser.nextLine()
-                if done {
-                        return errSurpriseEOF
-                        parser.printFatal(errSurpriseEOF)
-                }
-
-                if !parser.expect (
-                        lexer.TokenKindName,
-                        lexer.TokenKindSeparator,
-                ) { continue }
-
-                if parser.token.Kind == lexer.TokenKindSeparator {
-                        return
-                }
-
-                key := parser.token.Value
-
-                parser.nextToken()
-                if !parser.expect (
-                        lexer.TokenKindName,
-                        lexer.TokenKindString,
-                ) { continue }
-
-                switch key {
-                case "module":
-                         // no-op, we already know this info
-                        break
-                case "author":
-                        parser.module.author = parser.token.Value.(string)
-                        break
-                case "license":
-                        parser.module.license = parser.token.Value.(string)
-                        break
-                case "require":
-                        parser.module.imports = append (
-                                parser.module.imports,
-                                parser.token.Value.(string),
-                        )
-                        break
-                default:
-                        parser.printWarning(0, "uknown metadata field")
-                }
-
-                // the rest of the line should be empty
-                parser.nextToken()
-                parser.expect()
-        }
-        
-        return
-}
-
-/* parseBody parses the body of an arf file. This contains sections, which have
- * code in them.
- */
-func (parser *Parser) parseBody () (err error) {
-        return
-}
-
 /* nextLine advances the parser to the next line, and returns whether or not the
  * end of the file was reached.
  */
@@ -257,6 +195,12 @@ func (parser *Parser) endOfFile () (eof bool) {
  * end of line.
  */
 func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
+        currentKind := lexer.TokenKindNone
+
+        if !parser.endOfLine() {
+                currentKind = parser.token.Kind
+        }
+
         if len(kinds) == 0 {
                 if parser.endOfLine() {
                         return true
@@ -267,16 +211,16 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
                         return false
                 }
         }
+
+        for _, kind := range kinds {
+                if currentKind == kind {
+                        return true
+                }
+        }
         
         if parser.endOfLine() {
                 parser.printError(len(parser.line.Runes), errSurpriseEOL)
                 return false
-        }
-
-        for _, kind := range kinds {
-                if parser.token.Kind == kind {
-                        return true
-                }
         }
 
         parser.printError (

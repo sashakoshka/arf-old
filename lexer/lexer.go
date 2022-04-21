@@ -15,7 +15,8 @@ import (
 type TokenKind int
 
 const (
-        TokenKindSeparator TokenKind = iota
+        TokenKindNone TokenKind = iota
+        TokenKindSeparator
         TokenKindPermission
 
         TokenKindInt
@@ -312,7 +313,8 @@ func (lexer *Lexer) tokenizeNumber () {
                 }
                 token.Value = parsedNumber
         } else {
-                parsedNumber, _ := strconv.ParseInt (
+                // TODO: support negative numbers
+                parsedNumber, _ := strconv.ParseUint (
                         token.StringValue, radix, 64)
                 token.Value = parsedNumber
         }

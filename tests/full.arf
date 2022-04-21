@@ -1,5 +1,7 @@
 :arf
 module main
+author "Sasha Koshka"
+license "MIT"
 require "io"
 ---
 

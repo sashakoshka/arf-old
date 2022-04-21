@@ -7,7 +7,7 @@ import (
 )
 
 func main () {
-        module, nWarn, nError, err := parser.Parse("tests/hello")
+        module, nWarn, nError, err := parser.Parse("tests/main")
         if err != nil { os.Exit(1) }
         module.Dump()
         fmt.Println("(i)", nWarn, "warnings and", nError, "errors")
