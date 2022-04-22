@@ -223,7 +223,7 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
                 return false
         }
 
-        errText := "unexpected token, expected "
+        errText := "unexpected " + currentKind.ToString() + " token, expected "
 
         if len(kinds) > 1 {
                 for _, kind := range kinds[:len(kinds) - 2] {

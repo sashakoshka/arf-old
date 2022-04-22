@@ -17,6 +17,7 @@ type Module struct {
 }
 
 type Function struct {
+        isMember bool
         self struct {
                 name string
                 what Type
@@ -104,11 +105,11 @@ func (module *Module) Dump () {
 
         fmt.Println("---")
 
-        for item, _ := range module.functions {
-                fmt.Println("func", item)
+        for _, section := range module.functions {
+                section.Dump()
         }
 
-        for item, section := range module.typedefs {
+        for _, section := range module.typedefs {
                 fmt.Print("type ")
 
                 switch section.modeInternal {
@@ -123,13 +124,9 @@ func (module *Module) Dump () {
                         case ModeWrite: fmt.Print("w")
                 }
 
-                fmt.Print(" ", item + ":")
-                if section.inherits.points { fmt.Print("{") }
-                fmt.Print(section.inherits.name)
-                if section.inherits.points {
-                        fmt.Print(" ", section.inherits.items, "}")
-                }
-                fmt.Println()
+                fmt.Println (
+                        "", section.name +
+                        ":" + section.inherits.ToString())
 
                 for _, member := range section.members {
                         member.Dump(1)
@@ -157,17 +154,70 @@ func (data *Data) Dump (indent int) {
                 case ModeWrite: fmt.Print("w")
         }
 
-        fmt.Print(" ", data.name + ":")
-        if data.what.points { fmt.Print("{") }
-        fmt.Print(data.what.name)
-        if data.what.points {
-                fmt.Print(" ", data.what.items, "}")
-        }
-        fmt.Println()
+        fmt.Println("", data.name + ":" + data.what.ToString())
         
         for _, value := range data.value {
                 printIndent(indent + 1)
                 fmt.Println (value)
+        }
+}
+
+func (function *Function) Dump () {
+        fmt.Print("func ")
+
+        switch function.modeInternal {
+                case ModeDeny:  fmt.Print("n")
+                case ModeRead:  fmt.Print("r")
+                case ModeWrite: fmt.Print("w")
+        }
+        
+        switch function.modeExternal {
+                case ModeDeny:  fmt.Print("n")
+                case ModeRead:  fmt.Print("r")
+                case ModeWrite: fmt.Print("w")
+        }
+
+        fmt.Println("", function.name)
+
+        if function.isMember {
+                fmt.Println (
+                        "        @",
+                        function.self.name,
+                        function.self.what.ToString())
+        }
+
+        for _, input := range function.inputs {
+                fmt.Println (
+                        "        >",
+                        input.name,
+                        input.what.ToString())
+                        
+                        for _, value := range input.value {
+                                printIndent(2)
+                                fmt.Println (value)
+                        }
+        }
+
+        for _, output := range function.outputs {
+                fmt.Println (
+                        "        <",
+                        output.name,
+                        output.what.ToString())
+                        
+                        for _, value := range output.value {
+                                printIndent(2)
+                                fmt.Println (value)
+                        }
+        }
+        
+        fmt.Println("        ---")
+}
+
+func (what *Type) ToString () (string) {
+        if what.points {
+                return fmt.Sprint("{", what.name, " ", what.items, "}")
+        } else {
+                return fmt.Sprint(what.name)
         }
 }
 

@@ -73,9 +73,9 @@ func (parser *Parser) parseBodyData (
                 return nil, parser.skipBodySection()
         }
 
-        section.value, err = parser.parseDefaultValues(parentIndent)
+        section.value, worked, err = parser.parseDefaultValues(parentIndent)
         if err != nil { return nil, err }
-        if section.value == nil { return nil, nil }
+        if !worked { return nil, parser.skipBodySection() }
 
         return
 }
@@ -113,15 +113,105 @@ func (parser *Parser) parseBodyTypedef () (section *Typedef, err error) {
         }
 }
 
-/* parseBodyFunction parses a function section
+/* parseBodyFunction parses a function section.
  */
 func (parser *Parser) parseBodyFunction () (section *Function, err error) {
+        section = &Function {
+                inputs:  make(map[string] *Data),
+                outputs: make(map[string] *Data),
+        }
+
+        if !parser.expect(lexer.TokenKindPermission) {
+                 return nil, parser.skipBodySection()
+        }
+
+        section.modeInternal,
+        section.modeExternal = decodePermission(parser.token.StringValue)
+
+        parser.nextToken()
+        if !parser.expect(lexer.TokenKindName) {
+                 return nil, parser.skipBodySection()
+        }
+
+        section.name = parser.token.StringValue
+
+        parser.nextToken()
+        if !parser.expect() { return nil, parser.skipBodySection() }
+                
+        done := parser.nextLine()
+        if done || parser.line.Indent == 0 { return }
+
         for {
+                if !parser.expect (
+                        lexer.TokenKindSeparator,
+                        lexer.TokenKindSymbol,
+                ) { return nil, parser.skipBodySection() }
+
+                if parser.token.Kind == lexer.TokenKindSymbol {
+                        switch parser.token.StringValue {
+                        case "@":
+                                section.self.name,
+                                section.self.what,
+                                _, err =  parser.parseDeclaration()
+                                if err != nil { return nil, err }
+                                section.isMember = true
+                                break
+
+                        case ">":
+                                input := &Data {}
+                                input.name,
+                                input.what,
+                                _, err =  parser.parseDeclaration()
+                                if err != nil { return nil, err }
+
+                                input.value,
+                                _, err = parser.parseDefaultValues(1)
+                                if err != nil { return nil, err }
+
+                                section.inputs[input.name] = input
+                                break
+                        
+                        case "<":
+                                output := &Data {}
+                                output.name,
+                                output.what,
+                                _, err =  parser.parseDeclaration()
+                                if err != nil { return nil, err }
+
+                                output.value,
+                                _, err = parser.parseDefaultValues(1)
+                                if err != nil { return nil, err }
+
+                                section.outputs[output.name] = output
+                                break
+
+                        default:
+                                parser.printError (
+                                        parser.token.Column,
+                                        "unknown argument type symbol '" +
+                                        parser.token.StringValue + "',",
+                                        "use either '@', '>', or '<'")
+                                break
+                        }
+                }
+                
+                if parser.token.Kind == lexer.TokenKindSeparator { break }
+
+                done = parser.nextLine()
+                if done || parser.line.Indent == 0 { return }
+        }
+        
+        for {
+                
+                
                 done := parser.nextLine()
                 if done || parser.line.Indent == 0 { return }
         }
 }
 
+/* skipBodySection ignores the rest of the current section of the body and moves
+ * on to the next one.
+ */
 func (parser *Parser) skipBodySection () (err error ) {
         for {
                 done := parser.nextLine()
@@ -136,6 +226,7 @@ func (parser *Parser) parseDefaultValues (
         parentIndent int,
 ) (
         value []interface {},
+        worked bool,
         err error,
 ) {
         for {
@@ -146,14 +237,17 @@ func (parser *Parser) parseDefaultValues (
                         lexer.TokenKindFloat,
                         lexer.TokenKindString,
                         lexer.TokenKindRune,
-                ) { return nil, parser.skipBodySection() }
+                ) { return nil, false, nil }
                 if parser.endOfLine() { break }
                 value = append(value, parser.token.Value)
         }
         
         for {
                 done := parser.nextLine()
-                if done || parser.line.Indent <= parentIndent { return }
+                if done || parser.line.Indent <= parentIndent {
+                        worked = true
+                        return
+                }
 
                 for {
                         if !parser.expect (
@@ -162,7 +256,7 @@ func (parser *Parser) parseDefaultValues (
                                 lexer.TokenKindFloat,
                                 lexer.TokenKindString,
                                 lexer.TokenKindRune,
-                        ) { return nil, parser.skipBodySection() }
+                        ) { return nil, false, nil }
                         if parser.endOfLine() { break }
                         value = append(value, parser.token.Value)
                         parser.nextToken()
