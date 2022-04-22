@@ -10,8 +10,28 @@ It uses syntactical indentation and everything must be indented with 8 spaces
 (the holy indentation size used in the Linux kernel).
 
 What does arf stand for you ask? It doesn't, its just the sound that dogs make.
-So far, there have been no successful backgronymming attempts.
+So far, there have been no successful backgronymming attempts. Ciao has also
+been suggested as a name. 
 
 This does not compile code yet, it just partially parses it. I don't even have
 a language spec. Basically, don't expect a lot right now. Maybe expect a lot
 some time later though.
+
+Here is some example code:
+
+```
+:arf
+module hello
+author "Sasha Koshka"
+require "io"
+---
+
+func rr main
+        > argc:Int
+        > argv:{String}
+        < status:Int
+        ---
+        [io.println "Hello, world!"]
+```
+
+Isn't that neat? Its like a document.
