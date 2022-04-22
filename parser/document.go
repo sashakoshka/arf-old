@@ -6,8 +6,8 @@ import (
 )
 
 type Module struct {
-        name string
-        author string
+        name    string
+        author  string
         license string
         imports []string
 

@@ -75,6 +75,7 @@ func (parser *Parser) parseBodyData (
 
         section.value, err = parser.parseDefaultValues(parentIndent)
         if err != nil { return nil, err }
+        if section.value == nil { return nil, nil }
 
         return
 }
@@ -106,6 +107,7 @@ func (parser *Parser) parseBodyTypedef () (section *Typedef, err error) {
 
                 member, err := parser.parseBodyData(1)
                 if err != nil { return nil, err }
+                if member == nil { return nil, nil }
 
                 section.members = append(section.members, member)
         }
@@ -144,7 +146,7 @@ func (parser *Parser) parseDefaultValues (
                         lexer.TokenKindFloat,
                         lexer.TokenKindString,
                         lexer.TokenKindRune,
-                ) { return }
+                ) { return nil, parser.skipBodySection() }
                 if parser.endOfLine() { break }
                 value = append(value, parser.token.Value)
         }
@@ -160,7 +162,7 @@ func (parser *Parser) parseDefaultValues (
                                 lexer.TokenKindFloat,
                                 lexer.TokenKindString,
                                 lexer.TokenKindRune,
-                        ) { return }
+                        ) { return nil, parser.skipBodySection() }
                         if parser.endOfLine() { break }
                         value = append(value, parser.token.Value)
                         parser.nextToken()

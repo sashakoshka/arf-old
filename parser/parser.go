@@ -223,9 +223,19 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
                 return false
         }
 
-        parser.printError (
-                parser.token.Column,
-                "unexpected token")
+        errText := "unexpected token, expected "
+
+        if len(kinds) > 1 {
+                for _, kind := range kinds[:len(kinds) - 2] {
+                        errText += kind.ToString() + ", "
+                }
+
+                errText += "or "
+        }
+        
+        errText += kinds[len(kinds) - 1].ToString()
+
+        parser.printError(parser.token.Column, errText)
         return false
 }
 

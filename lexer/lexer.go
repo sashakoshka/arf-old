@@ -596,3 +596,25 @@ func (lexer *Lexer) printMistake (
         fmt.Print("    ")
         fmt.Println(cause...)
 }
+
+func (tokenKind TokenKind) ToString () (description string) {
+        switch tokenKind {
+                case TokenKindNone:       return "end of line";
+                case TokenKindSeparator:  return "separator";
+                case TokenKindPermission: return "permission";
+                case TokenKindInt:        return "integer literal";
+                case TokenKindFloat:      return "float literal";
+                case TokenKindString:     return "string literal";
+                case TokenKindRune:       return "rune literal";
+                case TokenKindName:       return "name";
+                case TokenKindSymbol:     return "symbol";
+                case TokenKindColon:      return "colon";
+                case TokenKindDot:        return "dot";
+                case TokenKindLBracket:   return "left bracket";
+                case TokenKindRBracket:   return "right bracket";
+                case TokenKindLBrace:     return "left brace";
+                case TokenKindRBrace:     return "right brace";
+
+                default: return "BUG"
+        }
+}
