@@ -206,26 +206,16 @@ func (parser *Parser) parseBodyFunctionCall (
 
         complete := false
         for !complete {
-                if bracketed {
-                        match = parser.expect (
-                                lexer.TokenKindNone,
-                                lexer.TokenKindLBracket,
-                                lexer.TokenKindRBracket,
-                                lexer.TokenKindName,
-                                lexer.TokenKindString,
-                                lexer.TokenKindRune,
-                                lexer.TokenKindInt,
-                                lexer.TokenKindFloat)
-                } else {
-                        match = parser.expect (
-                                lexer.TokenKindName,
-                                lexer.TokenKindLBracket,
-                                lexer.TokenKindRBracket,
-                                lexer.TokenKindString,
-                                lexer.TokenKindRune,
-                                lexer.TokenKindInt,
-                                lexer.TokenKindFloat)
-                }
+                match = parser.expect (
+                        lexer.TokenKindNone,
+                        lexer.TokenKindLBracket,
+                        lexer.TokenKindRBracket,
+                        lexer.TokenKindName,
+                        lexer.TokenKindString,
+                        lexer.TokenKindRune,
+                        lexer.TokenKindInteger,
+                        lexer.TokenKindSignedInteger,
+                        lexer.TokenKindFloat)
                 if !match {
                         parser.skipBodyFunctionCall(parentIndent, bracketed)
                         return
@@ -235,9 +225,14 @@ func (parser *Parser) parseBodyFunctionCall (
 
                 switch parser.token.Kind {
                 case lexer.TokenKindNone:
-                        // this case will only occur if the statement is
-                        // bracketed
-                        parser.nextLine()
+                        // if we have brackets, we can continue to parse the
+                        // statement on the next line. if we don't, we are done
+                        // parsing this statement.
+                        if bracketed {
+                                parser.nextLine()
+                        } else {
+                                complete = true
+                        }
                         continue
                         
                 case lexer.TokenKindName:
@@ -266,8 +261,15 @@ func (parser *Parser) parseBodyFunctionCall (
                         parser.nextToken()
                         break
                         
-                case lexer.TokenKindInt:
-                        // TODO: need to get signed/unsigned figured out
+                case lexer.TokenKindInteger:
+                        argument.kind = ArgumentKindInteger
+                        argument.integerValue = parser.token.Value.(uint64)
+                        parser.nextToken()
+                        break
+                        
+                case lexer.TokenKindSignedInteger:
+                        argument.kind = ArgumentKindSignedInteger
+                        argument.signedIntegerValue = parser.token.Value.(int64)
                         parser.nextToken()
                         break
                         
@@ -284,9 +286,7 @@ func (parser *Parser) parseBodyFunctionCall (
                         
                 case lexer.TokenKindRBracket:
                         complete = true
-                        parser.nextToken()
                         continue
-                        break
                 }
 
                 statement.arguments = append(statement.arguments, argument)

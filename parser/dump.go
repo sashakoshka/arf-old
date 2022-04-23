@@ -155,11 +155,11 @@ func (statement *Statement) Dump (indent int) {
                 case ArgumentKindIdentifier:
                         fmt.Print(argument.identifierValue.ToString())
                         break
-                case ArgumentKindUInteger:
-                        fmt.Print(argument.uIntegerValue)
-                        break
                 case ArgumentKindInteger:
                         fmt.Print(argument.integerValue)
+                        break
+                case ArgumentKindSignedInteger:
+                        fmt.Print(argument.signedIntegerValue)
                         break
                 case ArgumentKindFloat:
                         fmt.Print(argument.floatValue)

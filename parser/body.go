@@ -137,7 +137,8 @@ func (parser *Parser) parseDefaultValues (
                 parser.nextToken()
                 if !parser.expect (
                         lexer.TokenKindNone,
-                        lexer.TokenKindInt,
+                        lexer.TokenKindInteger,
+                        lexer.TokenKindSignedInteger,
                         lexer.TokenKindFloat,
                         lexer.TokenKindString,
                         lexer.TokenKindRune,
@@ -156,7 +157,7 @@ func (parser *Parser) parseDefaultValues (
                 for {
                         if !parser.expect (
                                 lexer.TokenKindNone,
-                                lexer.TokenKindInt,
+                                lexer.TokenKindSignedInteger,
                                 lexer.TokenKindFloat,
                                 lexer.TokenKindString,
                                 lexer.TokenKindRune,
@@ -213,11 +214,11 @@ func (parser *Parser) parseDeclaration () (
         if expectBrace {
                 if !parser.expect (
                         lexer.TokenKindRBrace,
-                        lexer.TokenKindInt,
+                        lexer.TokenKindInteger,
                 ) { return }
 
                 // get the count, if there is one
-                if parser.token.Kind == lexer.TokenKindInt {
+                if parser.token.Kind == lexer.TokenKindInteger {
                         what.items = parser.token.Value.(uint64)
                         parser.nextToken()
                         if !parser.expect(lexer.TokenKindRBrace) { return }

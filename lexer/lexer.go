@@ -19,7 +19,8 @@ const (
         TokenKindSeparator
         TokenKindPermission
 
-        TokenKindInt
+        TokenKindInteger
+        TokenKindSignedInteger
         TokenKindFloat
         TokenKindString
         TokenKindRune
@@ -137,40 +138,47 @@ func (lexer *Lexer) tokenizeLine () (done bool, err error) {
                 number    := ch >= '0' && ch <= '9'
                 
                 if number {
-                        lexer.tokenizeNumber()
+                        lexer.tokenizeNumber(false)
                 } else if lowercase || uppercase {
                         lexer.tokenizeMulti()
                 } else {
                         switch ch {
                         case '"':
                                 lexer.tokenizeString('"')
+                                line.nextRune()
                                 break
                         case '\'':
                                 lexer.tokenizeString('\'')
+                                line.nextRune()
                                 break
                         case ':':
                                 line.add(TokenKindColon, ":", ":")
+                                line.nextRune()
                                 break
                         case '.':
                                 line.add(TokenKindDot, ".", ".")
+                                line.nextRune()
                                 break
                         case '[':
                                 line.add(TokenKindLBracket, "[", "[")
+                                line.nextRune()
                                 break
                         case ']':
                                 line.add(TokenKindRBracket, "]", "]")
+                                line.nextRune()
                                 break
                         case '{':
                                 line.add(TokenKindLBrace, "{", "{")
+                                line.nextRune()
                                 break
                         case '}':
                                 line.add(TokenKindRBrace, "}", "}")
+                                line.nextRune()
                                 break
                         default:
                                 lexer.tokenizeSymbol()
                                 break
                         }
-                        line.nextRune()
                 }
 
                 lexer.skipWhitespace()
@@ -219,20 +227,21 @@ func (line *Line) Dump () {
         fmt.Println("line", line.Row)
         for _, token := range line.Tokens {
                 switch token.Kind {
-                case TokenKindSeparator:  kind = "Separator";  break
-                case TokenKindPermission: kind = "Permission"; break
-                case TokenKindInt:        kind = "Int";        break
-                case TokenKindFloat:      kind = "Float";      break
-                case TokenKindString:     kind = "String";     break
-                case TokenKindRune:       kind = "Rune";       break
-                case TokenKindName:       kind = "Name";       break
-                case TokenKindSymbol:     kind = "Symbol";     break
-                case TokenKindColon:      kind = "Colon";      break
-                case TokenKindDot:        kind = "Dot";        break
-                case TokenKindLBracket:   kind = "LBracket";   break
-                case TokenKindRBracket:   kind = "RBracket";   break
-                case TokenKindLBrace:     kind = "LBrace";     break
-                case TokenKindRBrace:     kind = "RBrace";     break
+                case TokenKindSeparator:     kind = "Separator";     break
+                case TokenKindPermission:    kind = "Permission";    break
+                case TokenKindInteger:       kind = "Integer";       break
+                case TokenKindSignedInteger: kind = "SignedInteger"; break
+                case TokenKindFloat:         kind = "Float";         break
+                case TokenKindString:        kind = "String";        break
+                case TokenKindRune:          kind = "Rune";          break
+                case TokenKindName:          kind = "Name";          break
+                case TokenKindSymbol:        kind = "Symbol";        break
+                case TokenKindColon:         kind = "Colon";         break
+                case TokenKindDot:           kind = "Dot";           break
+                case TokenKindLBracket:      kind = "LBracket";      break
+                case TokenKindRBracket:      kind = "RBracket";      break
+                case TokenKindLBrace:        kind = "LBrace";        break
+                case TokenKindRBrace:        kind = "RBrace";        break
                 }
 
                 for i := 0; i < line.Indent; i++ { fmt.Print("        ") }
@@ -240,15 +249,13 @@ func (line *Line) Dump () {
         }
 }
 
-func (lexer *Lexer) tokenizeNumber () {
+func (lexer *Lexer) tokenizeNumber (negative bool) {
         line := lexer.line
 
         radix := 10
+        isFloat := false
 
-        token := Token {
-                Kind:   TokenKindInt,
-                Column: line.column,
-        }
+        token := Token { Column: line.column }
 
         if line.ch() == '0' {
                 line.nextRune()
@@ -262,7 +269,11 @@ func (lexer *Lexer) tokenizeNumber () {
                                 notLower := ch < 'a' || ch > 'f'
                                 notUpper := ch < 'A' || ch > 'F'
                                 notNum   := ch < '0' || ch > '9'
-                                if notLower && notUpper && notNum { break }
+                                dot := ch == '.'
+                                if dot { isFloat = true }
+                                if notLower && notUpper && notNum && !dot {
+                                        break
+                                }
                                 token.StringValue += string(ch)
                                 line.nextRune()
                         }
@@ -285,7 +296,10 @@ func (lexer *Lexer) tokenizeNumber () {
                         radix = 8
                         for line.notEnd() {
                                 ch := line.ch()
-                                if ch < '0' || ch > '7' { break }
+                                notNum := ch < '0' || ch > '7'
+                                dot := ch == '.'
+                                if dot { isFloat = true }
+                                if notNum && !dot { break }
                                 token.StringValue += string(ch)
                                 line.nextRune()
                         }
@@ -295,7 +309,10 @@ func (lexer *Lexer) tokenizeNumber () {
                 // decimal
                 for line.notEnd() {
                         ch := line.ch()
-                        if ch < '0' || ch > '9' { break }
+                        notNum := ch < '0' || ch > '9'
+                        dot := ch == '.'
+                        if dot { isFloat = true }
+                        if notNum && !dot { break }
                         token.StringValue += string(ch)
                         line.nextRune()
                 }
@@ -311,12 +328,22 @@ func (lexer *Lexer) tokenizeNumber () {
                         }
                         coef *= 2
                 }
+                token.Kind  = TokenKindInteger
                 token.Value = parsedNumber
         } else {
-                // TODO: support negative numbers
                 parsedNumber, _ := strconv.ParseUint (
                         token.StringValue, radix, 64)
-                token.Value = parsedNumber
+                if negative {
+                        token.Kind  = TokenKindSignedInteger
+                        token.Value = int64(parsedNumber) * -1
+                } else {
+                        token.Kind  = TokenKindInteger
+                        token.Value = parsedNumber
+                }
+
+                if isFloat {
+                        // TODO: support floats
+                }
         }
         line.addExisting(&token)
 }
@@ -449,7 +476,14 @@ func (lexer *Lexer) tokenizeSymbol () {
                 // *breathes in*
                 if ch >= 'a' && ch <= 'z' { break }
                 if ch >= 'A' && ch <= 'Z' { break }
-                if ch >= '0' && ch <= '9' { break }
+                if ch >= '0' && ch <= '9' {
+                        // we may in fact be parsing a negative number!
+                        if (token.StringValue == "-") {
+                                lexer.tokenizeNumber(true)
+                                return
+                        }
+                        break
+                }
                 if ch == ' '  { break }
                 if ch == '"'  { break }
                 if ch == '\'' { break }
@@ -599,21 +633,22 @@ func (lexer *Lexer) printMistake (
 
 func (tokenKind TokenKind) ToString () (description string) {
         switch tokenKind {
-                case TokenKindNone:       return "end of line";
-                case TokenKindSeparator:  return "separator";
-                case TokenKindPermission: return "permission";
-                case TokenKindInt:        return "integer literal";
-                case TokenKindFloat:      return "float literal";
-                case TokenKindString:     return "string literal";
-                case TokenKindRune:       return "rune literal";
-                case TokenKindName:       return "name";
-                case TokenKindSymbol:     return "symbol";
-                case TokenKindColon:      return "colon";
-                case TokenKindDot:        return "dot";
-                case TokenKindLBracket:   return "left bracket";
-                case TokenKindRBracket:   return "right bracket";
-                case TokenKindLBrace:     return "left brace";
-                case TokenKindRBrace:     return "right brace";
+                case TokenKindNone:          return "end of line";
+                case TokenKindSeparator:     return "separator";
+                case TokenKindPermission:    return "permission";
+                case TokenKindInteger:       return "integer literal";
+                case TokenKindSignedInteger: return "signed integer literal";
+                case TokenKindFloat:         return "float literal";
+                case TokenKindString:        return "string literal";
+                case TokenKindRune:          return "rune literal";
+                case TokenKindName:          return "name";
+                case TokenKindSymbol:        return "symbol";
+                case TokenKindColon:         return "colon";
+                case TokenKindDot:           return "dot";
+                case TokenKindLBracket:      return "left bracket";
+                case TokenKindRBracket:      return "right bracket";
+                case TokenKindLBrace:        return "left brace";
+                case TokenKindRBrace:        return "right brace";
 
                 default: return "BUG"
         }

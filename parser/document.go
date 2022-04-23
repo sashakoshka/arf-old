@@ -65,8 +65,8 @@ const (
         ArgumentKindNone ArgumentKind = iota
         ArgumentKindStatement
         ArgumentKindIdentifier
-        ArgumentKindUInteger
         ArgumentKindInteger
+        ArgumentKindSignedInteger
         ArgumentKindFloat
         ArgumentKindString
         ArgumentKindRune
@@ -75,13 +75,13 @@ const (
 type Argument struct {
         kind ArgumentKind
         
-        statementValue  *Statement
-        identifierValue Identifier
-        stringValue     string
-        runeValue       rune
-        integerValue    int64
-        uIntegerValue   int64
-        floatValue      float64
+        statementValue     *Statement
+        identifierValue    Identifier
+        stringValue        string
+        runeValue          rune
+        integerValue       uint64
+        signedIntegerValue int64
+        floatValue         float64
 }
 
 type Data struct {
