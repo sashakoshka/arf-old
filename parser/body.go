@@ -256,5 +256,4 @@ func (parser *Parser) parseIdentifier () (
                 }
                 parser.nextToken()
         }
-
 }

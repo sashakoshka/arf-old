@@ -191,6 +191,7 @@ func (parser *Parser) parseBodyFunctionCall (
                 statement.command = Identifier {
                         trail: []string { parser.token.StringValue },
                 }
+                parser.nextToken()
         } else {
                 // this statement calls a reachable function
                 trail, worked, err := parser.parseIdentifier()
@@ -204,7 +205,7 @@ func (parser *Parser) parseBodyFunctionCall (
         }
 
         complete := false
-        for complete {
+        for !complete {
                 if bracketed {
                         match = parser.expect (
                                 lexer.TokenKindNone,
@@ -238,6 +239,7 @@ func (parser *Parser) parseBodyFunctionCall (
                         // bracketed
                         parser.nextLine()
                         continue
+                        
                 case lexer.TokenKindName:
                         trail, worked, err := parser.parseIdentifier()
                         if err != nil { return err }
@@ -251,33 +253,45 @@ func (parser *Parser) parseBodyFunctionCall (
                                 trail: trail,
                         }
                         break
+                        
                 case lexer.TokenKindString:
                         argument.kind = ArgumentKindString
                         argument.stringValue = parser.token.StringValue
+                        parser.nextToken()
                         break
+                        
                 case lexer.TokenKindRune:
                         argument.kind = ArgumentKindRune
                         argument.runeValue = parser.token.Value.(rune)
+                        parser.nextToken()
                         break
+                        
                 case lexer.TokenKindInt:
                         // TODO: need to get signed/unsigned figured out
+                        parser.nextToken()
                         break
+                        
                 case lexer.TokenKindFloat:
                         argument.kind = ArgumentKindFloat
                         argument.floatValue = parser.token.Value.(float64)
+                        parser.nextToken()
                         break
+                        
                 case lexer.TokenKindLBracket:
                         // TODO: parse argument statement
+                        parser.nextToken()
                         break
+                        
                 case lexer.TokenKindRBracket:
                         complete = true
+                        parser.nextToken()
+                        continue
                         break
                 }
 
                 statement.arguments = append(statement.arguments, argument)
-                parser.nextToken()
         }
-        
+
         parent.items = append (parent.items, BlockOrStatement {
                 statement: statement,
         })
@@ -304,12 +318,11 @@ func (parser *Parser) skipBodyFunctionCall (
 
         depth := 1
         for {
-                // TODO: fix segfault when these two lines are swapped
                 if parser.endOfLine() { parser.nextLine() }
                 if parser.endOfFile() { return }
 
                 if parser.token.Kind == lexer.TokenKindLBracket { depth ++ }
-                if parser.token.Kind == lexer.TokenKindRBracket { depth ++ }
+                if parser.token.Kind == lexer.TokenKindRBracket { depth -- }
 
                 // if we drop out of the block or exit the statement, we are
                 // done.

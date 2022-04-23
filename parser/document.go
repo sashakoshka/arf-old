@@ -62,7 +62,8 @@ type Statement struct {
 type ArgumentKind int
 
 const (
-        ArgumentKindStatement ArgumentKind = iota
+        ArgumentKindNone ArgumentKind = iota
+        ArgumentKindStatement
         ArgumentKindIdentifier
         ArgumentKindUInteger
         ArgumentKindInteger
