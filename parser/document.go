@@ -31,8 +31,12 @@ type Function struct {
         modeExternal Mode
 }
 
+type Identifier struct {
+        trail []string
+}
+
 type Type struct {
-        name   string
+        name   Identifier
         points bool
         items  uint64
 }
@@ -48,16 +52,18 @@ type Block struct {
 }
 
 type Statement struct {
-        command   string
-        external  bool
+        command   Identifier
         arguments []Argument
+
+        external        bool
+        externalCommand string
 }
 
 type ArgumentKind int
 
 const (
         ArgumentKindStatement ArgumentKind = iota
-        ArgumentKindName
+        ArgumentKindIdentifier
         ArgumentKindUInteger
         ArgumentKindInteger
         ArgumentKindFloat
@@ -68,12 +74,13 @@ const (
 type Argument struct {
         kind ArgumentKind
         
-        statementValue *Statement
-        stringValue    string
-        runeValue      rune
-        integerValue   int64
-        uIntegerValue  int64
-        floatValue     float64
+        statementValue  *Statement
+        identifierValue Identifier
+        stringValue     string
+        runeValue       rune
+        integerValue    int64
+        uIntegerValue   int64
+        floatValue      float64
 }
 
 type Data struct {

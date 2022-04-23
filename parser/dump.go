@@ -140,36 +140,35 @@ func (block *Block) Dump (indent int) {
 
 func (statement *Statement) Dump (indent int) {
         printIndent(indent)
-        fmt.Println("[")
-
-        printIndent(indent + 1)
-        fmt.Println(statement.command)
+        fmt.Print("[")
+        fmt.Print(statement.command.ToString())
 
         for _, argument := range statement.arguments {
+                fmt.Println()
                 if argument.kind == ArgumentKindStatement {
                         statement.Dump(indent + 1)
                         continue
                 }
-        
+                
                 printIndent(indent + 1)
                 switch argument.kind {
-                case ArgumentKindName:
-                        fmt.Println(argument.stringValue)
+                case ArgumentKindIdentifier:
+                        fmt.Print(argument.identifierValue.ToString())
                         break
                 case ArgumentKindUInteger:
-                        fmt.Println(argument.uIntegerValue)
+                        fmt.Print(argument.uIntegerValue)
                         break
                 case ArgumentKindInteger:
-                        fmt.Println(argument.integerValue)
+                        fmt.Print(argument.integerValue)
                         break
                 case ArgumentKindFloat:
-                        fmt.Println(argument.floatValue)
+                        fmt.Print(argument.floatValue)
                         break
                 case ArgumentKindString:
-                        fmt.Println("\"" + argument.stringValue + "\"")
+                        fmt.Print("\"", argument.stringValue, "\"")
                         break
                 case ArgumentKindRune:
-                        fmt.Println("'" + string(argument.runeValue) + "'")
+                        fmt.Print("'", string(argument.runeValue), "'")
                         break
                 }
         }
@@ -180,14 +179,26 @@ func (statement *Statement) Dump (indent int) {
 
 func (what *Type) ToString () (description string) {
         if what.points {
-                description += "{" + what.name
+                description += "{" + what.name.ToString()
                 if what.items > 1 {
                         description += fmt.Sprint(" ", what.items)
                 }
                 description += "}"
         } else {
-                description = what.name
+                description = what.name.ToString()
         }
+        return
+}
+
+func (identifier *Identifier) ToString () (description string) {
+        if len(identifier.trail) < 1 { return "EMPTY"}
+        description = identifier.trail[0]
+        if len(identifier.trail) < 2 { return }
+        
+        for _, item := range identifier.trail[1:] {
+                description += "." + item
+        }
+
         return
 }
 

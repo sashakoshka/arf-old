@@ -176,25 +176,72 @@ func (parser *Parser) parseBodyFunctionCall (
                         lexer.TokenKindString,
                         lexer.TokenKindSymbol)
                 if !match {
-                        // TODO: skip to matching right bracket, or indentation
-                        // drop.
-                        parser.nextLine()
+                        parser.skipBodyFunctionCall(parentIndent, bracketed)
                         return
                 }
         }
 
         if parser.token.Kind == lexer.TokenKindString {
+                // this statement calls a function of arbitrary name
                 statement.external = true
-        }
+                statement.externalCommand = parser.token.StringValue
+        } else if parser.token.Kind == lexer.TokenKindSymbol {
+                // this statement is an operator
+                statement.command = Identifier {
+                        trail: []string { parser.token.StringValue },
+                }
+        } else {
+                // this statement calls a reachable function
+                trail, worked, err := parser.parseIdentifier()
+                if !worked {
+                        parser.skipBodyFunctionCall(parentIndent, bracketed)
+                        return err
+                }
 
-        // we now have enough information to do this, thank you for coming to my
-        // ted talk
-        statement.command = parser.token.StringValue
+                statement.command = Identifier { trail: trail }
+        }
         
         parent.items = append (parent.items, BlockOrStatement {
                 statement: statement,
         })
         
+        parser.nextLine()
+        return
+}
+
+/* skipBodyFunctionCall skips to the next body function call, or indentation
+ * drop.
+ */
+func (parser *Parser) skipBodyFunctionCall (
+        parentIndent int,
+        bracketed bool,
+) (
+        err error,
+) {
+        // if the function isn't bracketed, we can just go on to the next line
+        // without any worries
+        if !bracketed {
+                parser.nextLine()
+                return
+        }
+
+        depth := 1
+        for {
+                // TODO: fix segfault when these two lines are swapped
+                if parser.endOfLine() { parser.nextLine() }
+                if parser.endOfFile() { return }
+
+                if parser.token.Kind == lexer.TokenKindLBracket { depth ++ }
+                if parser.token.Kind == lexer.TokenKindRBracket { depth ++ }
+
+                // if we drop out of the block or exit the statement, we are
+                // done.
+                if parser.line.Indent < parentIndent { break }
+                if depth == 0 { break }
+        
+                parser.nextToken()
+        }
+
         parser.nextLine()
         return
 }

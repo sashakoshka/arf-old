@@ -192,7 +192,8 @@ func (parser *Parser) parseDeclaration () (
         ) { return }
 
         expectBrace := false
-        
+
+        // if the type is braced, we have a pointer
         if parser.token.Kind == lexer.TokenKindLBrace {
                 parser.nextToken()
                 if !parser.expect(lexer.TokenKindName) { return }
@@ -202,15 +203,20 @@ func (parser *Parser) parseDeclaration () (
                 what.items = 1
         }
 
-        what.name = parser.token.StringValue
+        // get the identifier of this declaration's type
+        trail, worked, err := parser.parseIdentifier()
+        if !worked || err != nil { return }
 
+        what.name = Identifier { trail: trail }
+
+        // if the type is a pointer, get its right brace
         if expectBrace {
-                parser.nextToken()
                 if !parser.expect (
                         lexer.TokenKindRBrace,
                         lexer.TokenKindInt,
                 ) { return }
 
+                // get the count, if there is one
                 if parser.token.Kind == lexer.TokenKindInt {
                         what.items = parser.token.Value.(uint64)
                         parser.nextToken()
@@ -222,4 +228,33 @@ func (parser *Parser) parseDeclaration () (
 
         worked = true
         return
+}
+
+/* parseIdentifier parses an identifier of the form name.name.name
+ */
+func (parser *Parser) parseIdentifier () (
+        trail []string,
+        worked bool,
+        err error,
+) {
+        for {
+                if !parser.expect(lexer.TokenKindName) {
+                        worked = false
+                        return
+                }
+                
+                trail = append(trail, parser.token.StringValue)
+                
+                parser.nextToken()
+
+                if 
+                        parser.endOfLine() ||
+                        parser.token.Kind != lexer.TokenKindDot {
+                
+                        worked = true
+                        return
+                }
+                parser.nextToken()
+        }
+
 }
