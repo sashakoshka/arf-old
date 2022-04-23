@@ -22,7 +22,7 @@ func rr main
         > argv:{String}
         < status:Int 0
         ---
-        [let greeter:Greeter]
+        let greeter:Greeter
         [greeter.setText helloText]
         [greeter.greet]
 

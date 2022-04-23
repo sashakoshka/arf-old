@@ -14,11 +14,13 @@ import (
 )
 
 var (
-        errEmptyFile   = errors.New("file is devoid of content")
-        errBadIndent   = errors.New("this line should not be indented")
-        errSurpriseEOF = errors.New("file terminated unexpectedly")
-        errSurpriseEOL = errors.New("line terminated unexpectedly")
-        errNotArf      = errors.New("not an arf file, expected :arf")
+        errEmptyModule   = errors.New("there are no files in this module")
+        errEmptyFile     = errors.New("file is devoid of content")
+        errBadIndent     = errors.New("this line should not be indented")
+        errTooMuchIndent = errors.New("this line is indented too far")
+        errSurpriseEOF   = errors.New("file terminated unexpectedly")
+        errSurpriseEOL   = errors.New("line terminated unexpectedly")
+        errNotArf        = errors.New("not an arf file, expected :arf")
 )
 
 /* Parser is a magic machine that turns a path into a parsed AST. Neato!
@@ -58,13 +60,6 @@ func Parse (
         moduleBase := path.Base(modulePath)
         fmt.Println("...", "parsing module \"" + moduleBase + "\"")
 
-        if !validate.ValidateName(moduleBase) {
-                err = errors.New (
-                        "\"" + moduleBase + "\" is not a valid module name")
-                fmt.Println("XXX", err)
-                return nil, 0, 0, err
-        }
-
         parser := &Parser {
                 directory: moduleDir,
                 module:    &Module {
@@ -75,23 +70,37 @@ func Parse (
                 },
         }
 
+        if !validate.ValidateName(moduleBase) {
+                err = errors.New (
+                        "\"" + moduleBase + "\" is not a valid module name")
+                parser.printGeneralFatal(err)
+                return nil, 0, 1, err
+        }
+
         candidates, err := ioutil.ReadDir(parser.directory)
         if err != nil {
                 parser.printFatal(err)
-                return parser.module, parser.warnCount, parser.errorCount, err
+                return parser.module, 0, 1, err
         }
 
+        foundFile := false
         for _, candidate := range candidates {
                 if candidate.IsDir() { continue }
                 filePath := moduleDir + "/" + candidate.Name()
                 if getModuleName(filePath) != parser.module.name { continue }
 
                 fmt.Println("(i)", "found file", filePath)
+                foundFile = true
 
                 // attempt to parse the file. if any part fails, go on to the
                 // next one.
                 err = parser.parseFile(filePath)
                 if err != nil { continue }
+        }
+
+        if !foundFile {
+                parser.printGeneralFatal(errEmptyModule)
+                return nil, 0, 1, errEmptyModule
         }
 
         fmt.Println(".//", "module parsed")
@@ -223,10 +232,10 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
                 return false
         }
 
-        errText := "unexpected " + currentKind.ToString() + " token, expected "
+        errText := "unexpected " + currentKind.ToString() + " token. expected "
 
         if len(kinds) > 1 {
-                for _, kind := range kinds[:len(kinds) - 2] {
+                for _, kind := range kinds[:len(kinds) - 1] {
                         errText += kind.ToString() + ", "
                 }
 
@@ -271,6 +280,16 @@ func (parser *Parser) printFatal (err error) {
         fmt.Println ("\033[31mXXX\033[0m", "\033[90min\033[0m", parser.fileName,
                 "\033[90mof\033[0m", parser.module.name)
         fmt.Println("   ", "could not parse module -", err)
+}
+
+func (parser *Parser) printGeneralFatal (err error) {
+        parser.printGeneralMistake("\033[31mXXX\033[0m", err)
+}
+
+func (parser *Parser) printGeneralMistake (kind string, err error) {
+        parser.errorCount ++
+        fmt.Println (kind, "\033[90min\033[0m", parser.module.name)
+        fmt.Println("   ", err)
 }
 
 func (parser *Parser) printMistake (
