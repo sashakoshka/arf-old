@@ -172,8 +172,6 @@ func (statement *Statement) Dump (indent int) {
                         break
                 }
         }
-        
-        printIndent(indent)
         fmt.Println("]")
 }
 

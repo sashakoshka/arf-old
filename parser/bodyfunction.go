@@ -97,7 +97,8 @@ func (parser *Parser) parseBodyFunction () (section *Function, err error) {
         }
 
         // function body
-        err = parser.parseBodyFunctionBlock(0, section.root)
+        block, err := parser.parseBodyFunctionBlock(0)
+        section.root = block
         return
 }
 
@@ -106,11 +107,11 @@ func (parser *Parser) parseBodyFunction () (section *Function, err error) {
  */
 func (parser *Parser) parseBodyFunctionBlock (
         parentIndent int,
-        parent *Block,
 ) (
+        block *Block,
         err error,
 ) {
-        block := &Block {
+        block = &Block {
                 datas: make(map[string] *Data),
         }
 
@@ -125,20 +126,20 @@ func (parser *Parser) parseBodyFunctionBlock (
                         if parser.endOfFile() || err != nil { return }
                 } else if parser.line.Indent == parentIndent + 2 {
                         // block
-                        err = parser.parseBodyFunctionBlock (
-                                parentIndent + 1,
-                                block)
+                        var childBlock *Block
+                        childBlock, err = parser.parseBodyFunctionBlock (
+                                parentIndent + 1)
                         if parser.endOfFile() || err != nil { return }
+
+                        block.items = append (block.items, BlockOrStatement {
+                                block: childBlock,
+                        })
                 } else {
                         fmt.Println(parentIndent, parser.line.Indent)
                         parser.printError(0, errTooMuchIndent)
                         
                 }
         }
-        
-        parent.items = append (parent.items, BlockOrStatement {
-                block: block,
-        })
 
         return
 }
