@@ -3,6 +3,7 @@ package lexer
 import (
         "os"
         "fmt"
+        "math"
         "bufio"
         "errors"
         "strings"
@@ -254,6 +255,7 @@ func (lexer *Lexer) tokenizeNumber (negative bool) {
 
         radix := 10
         isFloat := false
+        floatPosition := 0
 
         token := Token { Column: line.column }
 
@@ -270,18 +272,23 @@ func (lexer *Lexer) tokenizeNumber (negative bool) {
                                 notUpper := ch < 'A' || ch > 'F'
                                 notNum   := ch < '0' || ch > '9'
                                 dot := ch == '.'
-                                if dot { isFloat = true }
                                 if notLower && notUpper && notNum && !dot {
                                         break
                                 }
-                                token.StringValue += string(ch)
+
                                 line.nextRune()
+                                if dot {
+                                        isFloat = true
+                                        floatPosition = len(token.StringValue)
+                                } else {
+                                        token.StringValue += string(ch)
+                                }
                         }
                         break
                         
                 case 'b':
                         // binary
-                        radix = 1
+                        radix = 2
                         line.nextRune()
                         for line.notEnd() {
                                 ch := line.ch()
@@ -298,10 +305,15 @@ func (lexer *Lexer) tokenizeNumber (negative bool) {
                                 ch := line.ch()
                                 notNum := ch < '0' || ch > '7'
                                 dot := ch == '.'
-                                if dot { isFloat = true }
                                 if notNum && !dot { break }
-                                token.StringValue += string(ch)
+
                                 line.nextRune()
+                                if dot {
+                                        isFloat = true
+                                        floatPosition = len(token.StringValue)
+                                } else {
+                                        token.StringValue += string(ch)
+                                }
                         }
                         break
                 }
@@ -311,40 +323,38 @@ func (lexer *Lexer) tokenizeNumber (negative bool) {
                         ch := line.ch()
                         notNum := ch < '0' || ch > '9'
                         dot := ch == '.'
-                        if dot { isFloat = true }
                         if notNum && !dot { break }
-                        token.StringValue += string(ch)
+
                         line.nextRune()
+                        if dot {
+                                isFloat = true
+                                floatPosition = len(token.StringValue)
+                        } else {
+                                token.StringValue += string(ch)
+                        }
                 }
         }
 
-        if radix == 1 {
-                // golang doesn't support parsing binary numbers, but we do!
-                coef := 1
-                parsedNumber := 0
-                for index := len(token.StringValue) - 1; index >= 0; index -- {
-                        if token.StringValue[index] == '1' {
-                                parsedNumber += coef
-                        }
-                        coef *= 2
-                }
+        parsedNumber, _ := strconv.ParseUint (
+                token.StringValue, radix, 64)
+        floatValue := float64(parsedNumber)
+        if negative {
+                token.Kind  = TokenKindSignedInteger
+                token.Value = int64(parsedNumber) * -1
+                floatValue *= -1
+        } else {
                 token.Kind  = TokenKindInteger
                 token.Value = parsedNumber
-        } else {
-                parsedNumber, _ := strconv.ParseUint (
-                        token.StringValue, radix, 64)
-                if negative {
-                        token.Kind  = TokenKindSignedInteger
-                        token.Value = int64(parsedNumber) * -1
-                } else {
-                        token.Kind  = TokenKindInteger
-                        token.Value = parsedNumber
-                }
-
-                if isFloat {
-                        // TODO: support floats
-                }
         }
+
+        if isFloat {
+                token.Kind  = TokenKindFloat
+                floatPosition = len(token.StringValue) - floatPosition
+                coefficient := math.Pow(float64(radix), float64(floatPosition))
+                floatValue /= coefficient
+                token.Value = floatValue
+        }
+        
         line.addExisting(&token)
 }
 

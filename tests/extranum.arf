@@ -4,4 +4,4 @@ module extranum
 
 func rr main
         ---
-        = x -0xFF
+        = x -0xFF.F
