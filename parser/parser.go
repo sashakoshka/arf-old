@@ -254,7 +254,7 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
 func (parser *Parser) nextToken () (done bool) {
         parser.tokenIndex ++
         if parser.endOfLine() {
-                parser.token = nil
+                parser.token = &lexer.Token { Kind: lexer.TokenKindNone }
                 return true
         }
         parser.token = parser.line.Tokens[parser.tokenIndex]

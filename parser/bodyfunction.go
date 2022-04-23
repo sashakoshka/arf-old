@@ -194,12 +194,88 @@ func (parser *Parser) parseBodyFunctionCall (
         } else {
                 // this statement calls a reachable function
                 trail, worked, err := parser.parseIdentifier()
+                        if err != nil { return err }
                 if !worked {
                         parser.skipBodyFunctionCall(parentIndent, bracketed)
-                        return err
+                        return nil
                 }
 
                 statement.command = Identifier { trail: trail }
+        }
+
+        complete := false
+        for complete {
+                if bracketed {
+                        match = parser.expect (
+                                lexer.TokenKindNone,
+                                lexer.TokenKindLBracket,
+                                lexer.TokenKindRBracket,
+                                lexer.TokenKindName,
+                                lexer.TokenKindString,
+                                lexer.TokenKindRune,
+                                lexer.TokenKindInt,
+                                lexer.TokenKindFloat)
+                } else {
+                        match = parser.expect (
+                                lexer.TokenKindName,
+                                lexer.TokenKindLBracket,
+                                lexer.TokenKindRBracket,
+                                lexer.TokenKindString,
+                                lexer.TokenKindRune,
+                                lexer.TokenKindInt,
+                                lexer.TokenKindFloat)
+                }
+                if !match {
+                        parser.skipBodyFunctionCall(parentIndent, bracketed)
+                        return
+                }
+
+                argument := Argument {}
+
+                switch parser.token.Kind {
+                case lexer.TokenKindNone:
+                        // this case will only occur if the statement is
+                        // bracketed
+                        parser.nextLine()
+                        continue
+                case lexer.TokenKindName:
+                        trail, worked, err := parser.parseIdentifier()
+                        if err != nil { return err }
+                        if !worked {
+                                parser.skipBodyFunctionCall (
+                                        parentIndent, bracketed)
+                        }
+
+                        argument.kind  = ArgumentKindIdentifier
+                        argument.identifierValue = Identifier {
+                                trail: trail,
+                        }
+                        break
+                case lexer.TokenKindString:
+                        argument.kind = ArgumentKindString
+                        argument.stringValue = parser.token.StringValue
+                        break
+                case lexer.TokenKindRune:
+                        argument.kind = ArgumentKindRune
+                        argument.runeValue = parser.token.Value.(rune)
+                        break
+                case lexer.TokenKindInt:
+                        // TODO: need to get signed/unsigned figured out
+                        break
+                case lexer.TokenKindFloat:
+                        argument.kind = ArgumentKindFloat
+                        argument.floatValue = parser.token.Value.(float64)
+                        break
+                case lexer.TokenKindLBracket:
+                        // TODO: parse argument statement
+                        break
+                case lexer.TokenKindRBracket:
+                        complete = true
+                        break
+                }
+
+                statement.arguments = append(statement.arguments, argument)
+                parser.nextToken()
         }
         
         parent.items = append (parent.items, BlockOrStatement {
