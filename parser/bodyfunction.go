@@ -118,27 +118,42 @@ func (parser *Parser) parseBodyFunctionBlock (
         for {
                 if parser.line.Indent <= parentIndent {
                         break
+                        
                 } else if parser.line.Indent == parentIndent + 1 {
                         // call
-                        err = parser.parseBodyFunctionCall (
+                        var statement *Statement
+                        statement, err = parser.parseBodyFunctionCall (
                                 parentIndent + 1,
                                 block)
-                        if parser.endOfFile() || err != nil { return }
+                        if err != nil { return }
+
+                        if statement != nil {
+                                block.items = append (
+                                        block.items,
+                                        BlockOrStatement {
+                                                statement: statement,
+                                        },
+                                )
+                        }
+                        
                 } else if parser.line.Indent == parentIndent + 2 {
                         // block
                         var childBlock *Block
                         childBlock, err = parser.parseBodyFunctionBlock (
                                 parentIndent + 1)
-                        if parser.endOfFile() || err != nil { return }
+                        if err != nil { return }
 
                         block.items = append (block.items, BlockOrStatement {
                                 block: childBlock,
                         })
+                        
                 } else {
                         fmt.Println(parentIndent, parser.line.Indent)
                         parser.printError(0, errTooMuchIndent)
                         
                 }
+
+                if parser.endOfFile() { return }
         }
 
         return
@@ -149,11 +164,13 @@ func (parser *Parser) parseBodyFunctionBlock (
  */
 func (parser *Parser) parseBodyFunctionCall (
         parentIndent int,
+        // specifically for defining variables in
         parent *Block,
 ) (
+        statement *Statement,
         err error,
 ) {
-        statement := &Statement {}
+        statement = &Statement {}
 
         match := parser.expect (
                 lexer.TokenKindLBracket,
@@ -163,8 +180,8 @@ func (parser *Parser) parseBodyFunctionCall (
         // we have no idea what the users intent with that was, so try to move
         // on to the next statement.
         if !match {
-                parser.nextLine()
-                return
+                parser.skipBodyFunctionCall(parentIndent, false)
+                return nil, nil
         }
         
         bracketed := parser.token.Kind == lexer.TokenKindLBracket
@@ -177,8 +194,9 @@ func (parser *Parser) parseBodyFunctionCall (
                         lexer.TokenKindString,
                         lexer.TokenKindSymbol)
                 if !match {
-                        parser.skipBodyFunctionCall(parentIndent, bracketed)
-                        return
+                        err = parser.skipBodyFunctionCall (
+                                parentIndent, bracketed)
+                        return nil, err
                 }
         }
 
@@ -195,10 +213,10 @@ func (parser *Parser) parseBodyFunctionCall (
         } else {
                 // this statement calls a reachable function
                 trail, worked, err := parser.parseIdentifier()
-                        if err != nil { return err }
+                        if err != nil { return nil, err }
                 if !worked {
                         parser.skipBodyFunctionCall(parentIndent, bracketed)
-                        return nil
+                        return nil, nil
                 }
 
                 statement.command = Identifier { trail: trail }
@@ -217,8 +235,9 @@ func (parser *Parser) parseBodyFunctionCall (
                         lexer.TokenKindSignedInteger,
                         lexer.TokenKindFloat)
                 if !match {
-                        parser.skipBodyFunctionCall(parentIndent, bracketed)
-                        return
+                        err = parser.skipBodyFunctionCall (
+                                parentIndent, bracketed)
+                        return nil, err
                 }
 
                 argument := Argument {}
@@ -237,7 +256,7 @@ func (parser *Parser) parseBodyFunctionCall (
                         
                 case lexer.TokenKindName:
                         trail, worked, err := parser.parseIdentifier()
-                        if err != nil { return err }
+                        if err != nil { return nil, err }
                         if !worked {
                                 parser.skipBodyFunctionCall (
                                         parentIndent, bracketed)
@@ -280,8 +299,11 @@ func (parser *Parser) parseBodyFunctionCall (
                         break
                         
                 case lexer.TokenKindLBracket:
-                        // TODO: parse argument statement
-                        parser.nextToken()
+                        childStatement, err := parser.parseBodyFunctionCall (
+                                parentIndent, parent)
+                        if err != nil { return nil, err }
+                        argument.kind = ArgumentKindStatement
+                        argument.statementValue = childStatement
                         break
                         
                 case lexer.TokenKindRBracket:
@@ -291,10 +313,6 @@ func (parser *Parser) parseBodyFunctionCall (
 
                 statement.arguments = append(statement.arguments, argument)
         }
-
-        parent.items = append (parent.items, BlockOrStatement {
-                statement: statement,
-        })
         
         parser.nextLine()
         return
@@ -318,8 +336,8 @@ func (parser *Parser) skipBodyFunctionCall (
 
         depth := 1
         for {
-                if parser.endOfLine() { parser.nextLine() }
                 if parser.endOfFile() { return }
+                if parser.endOfLine() { parser.nextLine() }
 
                 if parser.token.Kind == lexer.TokenKindLBracket { depth ++ }
                 if parser.token.Kind == lexer.TokenKindRBracket { depth -- }

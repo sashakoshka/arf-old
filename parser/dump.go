@@ -134,6 +134,7 @@ func (block *Block) Dump (indent int) {
                         item.block.Dump(indent + 1)
                 } else if item.statement != nil {
                         item.statement.Dump(indent)
+                        fmt.Println()
                 }
         }
 }
@@ -146,7 +147,7 @@ func (statement *Statement) Dump (indent int) {
         for _, argument := range statement.arguments {
                 fmt.Println()
                 if argument.kind == ArgumentKindStatement {
-                        statement.Dump(indent + 1)
+                        argument.statementValue.Dump(indent + 1)
                         continue
                 }
                 
@@ -172,7 +173,7 @@ func (statement *Statement) Dump (indent int) {
                         break
                 }
         }
-        fmt.Println("]")
+        fmt.Print("]")
 }
 
 func (what *Type) ToString () (description string) {

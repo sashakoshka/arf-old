@@ -1,0 +1,8 @@
+:arf
+module simple
+---
+
+func rr main
+        ---
+        let x 5
+        let y [+ x 5]

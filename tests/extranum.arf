@@ -1,7 +1,0 @@
-:arf
-module extranum
----
-
-func rr main
-        ---
-        = x -0xFF.F

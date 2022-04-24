@@ -262,6 +262,7 @@ func (parser *Parser) nextToken () (done bool) {
 }
 
 func (parser *Parser) endOfLine () (eol bool) {
+        if parser.line == nil { return false }
         return parser.tokenIndex >= len(parser.line.Tokens)
 }
 
