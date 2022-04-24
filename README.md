@@ -21,7 +21,7 @@ Here is some example code:
 
 ```
 :arf
-module hello
+module main
 author "Sasha Koshka"
 require "io"
 ---
@@ -31,7 +31,7 @@ func rr main
         > argv:{String}
         < status:Int
         ---
-        [io.println "Hello, world!"]
+        io.println "Hello, world!"
 ```
 
 Isn't that neat? Its like a document.
