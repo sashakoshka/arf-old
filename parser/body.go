@@ -134,7 +134,6 @@ func (parser *Parser) parseDefaultValues (
         err error,
 ) {
         for {
-                parser.nextToken()
                 if !parser.expect (
                         lexer.TokenKindNone,
                         lexer.TokenKindInteger,
@@ -145,6 +144,7 @@ func (parser *Parser) parseDefaultValues (
                 ) { return nil, false, nil }
                 if parser.endOfLine() { break }
                 value = append(value, parser.token.Value)
+                parser.nextToken()
         }
         
         for {
@@ -191,41 +191,68 @@ func (parser *Parser) parseDeclaration () (
                 lexer.TokenKindName,
                 lexer.TokenKindLBrace,
         ) { return }
-
-        expectBrace := false
-
+        
         // if the type is braced, we have a pointer
         if parser.token.Kind == lexer.TokenKindLBrace {
                 parser.nextToken()
                 if !parser.expect(lexer.TokenKindName) { return }
 
-                expectBrace = true
                 what.points = true
-                what.items = 1
+                what.name,
+                what.items,
+                worked, err = parser. parsePointerNotation()
+                if !worked || err != nil { return }
+        } else {
+                // get the identifier of this declaration's type
+                what.name = Identifier {}
+                
+                what.name.trail, worked, err = parser.parseIdentifier()
+                if !worked || err != nil { return }
+
+                parser.nextToken()
         }
 
-        // get the identifier of this declaration's type
-        trail, worked, err := parser.parseIdentifier()
+        worked = true
+        return
+}
+
+/* parsePointerNotation parses a reference to a variable that uses pointer
+ * notation. It must be of the form {Identifier N} where N is the optional
+ * offset. This is also useful for parsing declarations and dereferences.
+ */
+func (parser *Parser) parsePointerNotation () (
+        identifier Identifier,
+        offset     uint64,
+        worked     bool,
+        err        error,
+) {
+        offset = 1
+        
+        if !parser.expect(lexer.TokenKindLBrace) { return }
+
+        parser.nextToken()
+        if !parser.expect(lexer.TokenKindName) { return }
+
+        // get the identifier it is referring to
+        var trail []string
+        trail, worked, err = parser.parseIdentifier()
         if !worked || err != nil { return }
 
-        what.name = Identifier { trail: trail }
+        identifier = Identifier { trail: trail }
 
-        // if the type is a pointer, get its right brace
-        if expectBrace {
-                if !parser.expect (
-                        lexer.TokenKindRBrace,
-                        lexer.TokenKindInteger,
-                ) { return }
-
-                // get the count, if there is one
-                if parser.token.Kind == lexer.TokenKindInteger {
-                        what.items = parser.token.Value.(uint64)
-                        parser.nextToken()
-                        if !parser.expect(lexer.TokenKindRBrace) { return }
-                }
-
-                worked = true
+        if !parser.expect (
+                lexer.TokenKindRBrace,
+                lexer.TokenKindInteger,
+        ) { return }
+        
+        // get the count, if there is one
+        if parser.token.Kind == lexer.TokenKindInteger {
+                offset = parser.token.Value.(uint64)
+                parser.nextToken()
+                if !parser.expect(lexer.TokenKindRBrace) { return }
         }
+        
+        parser.nextToken()
 
         worked = true
         return

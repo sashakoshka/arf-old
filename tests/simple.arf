@@ -3,6 +3,9 @@ module simple
 ---
 
 func rr main
+        > argc:Int
+        > argv:{String 3}
+        < status:Int
         ---
-        let x 5
-        let y [+ x 5]
+        let x:int 5
+        let y:{int} [+ x 5]

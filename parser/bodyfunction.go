@@ -309,6 +309,11 @@ func (parser *Parser) parseBodyFunctionCall (
                 case lexer.TokenKindRBracket:
                         complete = true
                         continue
+                        
+                case lexer.TokenKindLBrace:
+                        // TODO: get pointer notation
+                        parser.nextToken()
+                        continue
                 }
 
                 statement.arguments = append(statement.arguments, argument)
