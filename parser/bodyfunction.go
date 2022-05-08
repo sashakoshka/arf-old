@@ -228,6 +228,7 @@ func (parser *Parser) parseBodyFunctionCall (
                         lexer.TokenKindNone,
                         lexer.TokenKindLBracket,
                         lexer.TokenKindRBracket,
+                        lexer.TokenKindColon,
                         lexer.TokenKindName,
                         lexer.TokenKindString,
                         lexer.TokenKindRune,
@@ -258,8 +259,8 @@ func (parser *Parser) parseBodyFunctionCall (
                         trail, worked, err := parser.parseIdentifier()
                         if err != nil { return nil, err }
                         if !worked {
-                                parser.skipBodyFunctionCall (
-                                        parentIndent, bracketed)
+                                parser.nextToken()
+                                continue
                         }
 
                         argument.kind  = ArgumentKindIdentifier
@@ -267,6 +268,74 @@ func (parser *Parser) parseBodyFunctionCall (
                                 trail: trail,
                         }
                         break
+
+                case lexer.TokenKindColon:
+                        parser.nextToken()
+
+                        previousArgument := &statement.arguments [
+                                len(statement.arguments) - 1]
+                        
+                        if previousArgument.kind != ArgumentKindIdentifier {
+                                parser.printError (
+                                        parser.token.Column,
+                                        "type specifier may only follow an " +
+                                        "identifier")
+                        }
+
+                        if len(previousArgument.identifierValue.trail) != 1 {
+                                parser.printError (
+                                        parser.token.Column,
+                                        "cannot use member selection in " +
+                                        "definition, name cannot have dots " +
+                                        "in it")
+                        }
+
+                        if !parser.expect (
+                                lexer.TokenKindLBrace,
+                                lexer.TokenKindName,
+                        ) {
+                                parser.nextToken()
+                                continue
+                        }
+
+                        newArgument := Argument {
+                                kind: ArgumentKindDefinition,
+                                definitionValue: Definition {
+                                        name: previousArgument.identifierValue,
+                                },
+                        }
+                        
+                        if parser.token.Kind == lexer.TokenKindLBrace {
+                                identifier,
+                                length,
+                                worked, err := parser.parsePointerNotation()
+                                if err != nil { return nil, err }
+                                if !worked {
+                                        parser.nextToken()
+                                        continue
+                                }
+
+                                newArgument.definitionValue.what = Type {
+                                        name:   identifier,
+                                        points: true,
+                                        items:  length,
+                                }
+                        } else {
+                                trail, worked, err := parser.parseIdentifier()
+                                if err != nil { return nil, err }
+                                if !worked {
+                                        parser.nextToken()
+                                        continue
+                                }
+                                
+                                newArgument.definitionValue.what = Type {
+                                        name: Identifier { trail: trail },
+                                }
+                        }
+
+                        *previousArgument = newArgument
+                        fmt.Println(previousArgument.kind)
+                        continue
                         
                 case lexer.TokenKindString:
                         argument.kind = ArgumentKindString

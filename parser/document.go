@@ -35,6 +35,11 @@ type Identifier struct {
         trail []string
 }
 
+type Definition struct {
+        name Identifier
+        what Type
+}
+
 type Type struct {
         name   Identifier
         points bool
@@ -65,6 +70,7 @@ const (
         ArgumentKindNone ArgumentKind = iota
         ArgumentKindStatement
         ArgumentKindIdentifier
+        ArgumentKindDefinition
         ArgumentKindInteger
         ArgumentKindSignedInteger
         ArgumentKindFloat
@@ -77,6 +83,7 @@ type Argument struct {
         
         statementValue     *Statement
         identifierValue    Identifier
+        definitionValue    Definition
         stringValue        string
         runeValue          rune
         integerValue       uint64
