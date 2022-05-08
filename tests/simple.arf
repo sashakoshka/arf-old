@@ -8,4 +8,4 @@ func rr main
         < status:Int
         ---
         let x:int 5
-        let y:{int} [+ x 5]
+        let y.z:{int} [+ x 5]

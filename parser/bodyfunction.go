@@ -270,8 +270,8 @@ func (parser *Parser) parseBodyFunctionCall (
                         break
 
                 case lexer.TokenKindColon:
-                        parser.nextToken()
-
+                        discardAfterParse := false
+                
                         previousArgument := &statement.arguments [
                                 len(statement.arguments) - 1]
                         
@@ -280,6 +280,7 @@ func (parser *Parser) parseBodyFunctionCall (
                                         parser.token.Column,
                                         "type specifier may only follow an " +
                                         "identifier")
+                                discardAfterParse = true
                         }
 
                         if len(previousArgument.identifierValue.trail) != 1 {
@@ -288,8 +289,10 @@ func (parser *Parser) parseBodyFunctionCall (
                                         "cannot use member selection in " +
                                         "definition, name cannot have dots " +
                                         "in it")
+                                discardAfterParse = true
                         }
 
+                        parser.nextToken()
                         if !parser.expect (
                                 lexer.TokenKindLBrace,
                                 lexer.TokenKindName,
@@ -333,8 +336,9 @@ func (parser *Parser) parseBodyFunctionCall (
                                 }
                         }
 
-                        *previousArgument = newArgument
-                        fmt.Println(previousArgument.kind)
+                        if !discardAfterParse {
+                                *previousArgument = newArgument
+                        }
                         continue
                         
                 case lexer.TokenKindString:
