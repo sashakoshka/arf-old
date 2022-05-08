@@ -336,7 +336,10 @@ func (parser *Parser) parseBodyFunctionCall (
                                 }
                         }
 
-                        if !discardAfterParse {
+                        if discardAfterParse {
+                                statement.arguments = statement.arguments [
+                                        :len(statement.arguments) - 1]
+                        } else {
                                 *previousArgument = newArgument
                         }
                         continue
