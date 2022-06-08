@@ -307,34 +307,15 @@ func (parser *Parser) parseBodyFunctionCall (
                                         name: previousArgument.identifierValue,
                                 },
                         }
-                        
-                        if parser.token.Kind == lexer.TokenKindLBrace {
-                                identifier,
-                                length,
-                                worked, err := parser.parsePointerNotation()
-                                if err != nil { return nil, err }
-                                if !worked {
-                                        parser.nextToken()
-                                        continue
-                                }
 
-                                newArgument.definitionValue.what = Type {
-                                        name:   identifier,
-                                        points: true,
-                                        items:  length,
-                                }
-                        } else {
-                                trail, worked, err := parser.parseIdentifier()
-                                if err != nil { return nil, err }
-                                if !worked {
-                                        parser.nextToken()
-                                        continue
-                                }
-                                
-                                newArgument.definitionValue.what = Type {
-                                        name: Identifier { trail: trail },
-                                }
+                        what, worked, err := parser.parseType()
+                        if err != nil { return nil, err }
+                        if !worked {
+                                parser.nextToken()
+                                continue
                         }
+                        
+                        newArgument.definitionValue.what = what
 
                         if discardAfterParse {
                                 statement.arguments = statement.arguments [

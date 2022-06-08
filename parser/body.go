@@ -185,40 +185,15 @@ func (parser *Parser) parseDeclaration () (
 
         parser.nextToken()
         if !parser.expect(lexer.TokenKindColon) { return }
-
-        parser.nextToken()
-        if !parser.expect (
-                lexer.TokenKindName,
-                lexer.TokenKindLBrace,
-        ) { return }
         
-        // if the type is braced, we have a pointer
-        if parser.token.Kind == lexer.TokenKindLBrace {
-                parser.nextToken()
-                if !parser.expect(lexer.TokenKindName) { return }
-
-                what.points = true
-                what.name,
-                what.items,
-                worked, err = parser. parsePointerNotation()
-                if !worked || err != nil { return }
-        } else {
-                // get the identifier of this declaration's type
-                what.name = Identifier {}
-                
-                what.name.trail, worked, err = parser.parseIdentifier()
-                if !worked || err != nil { return }
-
-                parser.nextToken()
-        }
-
-        worked = true
+        parser.nextToken()
+        what, worked, err = parser.parseType()
         return
 }
 
 /* parsePointerNotation parses a reference to a variable that uses pointer
  * notation. It must be of the form {Identifier N} where N is the optional
- * offset. This is also useful for parsing declarations and dereferences.
+ * offset.
  */
 func (parser *Parser) parsePointerNotation () (
         identifier Identifier,
@@ -284,4 +259,54 @@ func (parser *Parser) parseIdentifier () (
                 }
                 parser.nextToken()
         }
+}
+
+/* parseType parses a type specifier that comes after a a colon.
+ */
+func (parser *Parser) parseType () (
+        what   Type,
+        worked bool,
+        err    error,
+) {
+        if !parser.expect (
+                lexer.TokenKindName,
+                lexer.TokenKindLBrace,
+        ) { return }
+        
+        // if the type is braced, we have a pointer
+        if parser.token.Kind == lexer.TokenKindLBrace {
+                parser.nextToken()
+                
+                var points Type;
+                points, worked, err = parser.parseType()
+                if !worked || err != nil { return }
+
+                what.points = &points;
+
+                if !parser.expect (
+                        lexer.TokenKindRBrace,
+                        lexer.TokenKindInteger,
+                ) { return what, false, nil }
+        
+                // get the count, if there is one
+                if parser.token.Kind == lexer.TokenKindInteger {
+                        what.items = parser.token.Value.(uint64)
+                        parser.nextToken()
+                        if !parser.expect(lexer.TokenKindRBrace) {
+                                return what, false, nil
+                        }
+                }
+                
+                parser.nextToken()
+        } else {
+                // get the identifier of this declaration's type
+                what.name = Identifier {}
+                
+                what.name.trail, worked, err = parser.parseIdentifier()
+                if !worked || err != nil { return }
+
+                parser.nextToken()
+        }
+
+        return what, false, nil
 }

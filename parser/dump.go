@@ -180,8 +180,8 @@ func (statement *Statement) Dump (indent int) {
 }
 
 func (what *Type) ToString () (description string) {
-        if what.points {
-                description += "{" + what.name.ToString()
+        if what.points != nil {
+                description += "{" + what.points.ToString()
                 if what.items > 1 {
                         description += fmt.Sprint(" ", what.items)
                 }
@@ -189,6 +189,11 @@ func (what *Type) ToString () (description string) {
         } else {
                 description = what.name.ToString()
         }
+
+        if what.mutable {
+                description += ":mut"
+        }
+        
         return
 }
 

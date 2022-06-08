@@ -17,6 +17,7 @@ type Module struct {
 
 type Function struct {
         isMember bool
+        // TODO: convert to data
         self struct {
                 name string
                 what Type
@@ -41,9 +42,10 @@ type Definition struct {
 }
 
 type Type struct {
-        name   Identifier
-        points bool
-        items  uint64
+        name    Identifier
+        points  *Type
+        items   uint64
+        mutable bool
 }
 
 type BlockOrStatement struct {

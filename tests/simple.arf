@@ -4,8 +4,13 @@ module simple
 
 func rr main
         > argc:Int
-        > argv:{String 3}
+        > argv:{String}
         < status:Int
         ---
-        let x:int 5
-        let y.z:{int} [+ x 5]
+        let someVar:Int
+        let someVar:{Int}
+        let someVar:{{Int}}
+        # let someVar:{{{Int}}}
+        # let pointerToMutData:{Int:mut}
+        # let mutPointerToData:{Int}:mut
+        # let mutPointerToPointerToMutData:{{Int:mut}}:mut
