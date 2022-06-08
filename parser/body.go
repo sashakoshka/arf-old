@@ -2,6 +2,7 @@ package parser
 
 import (
         "github.com/sashakoshka/arf/lexer"
+        // "fmt"
 )
 
 /* parseBody parses the body of an arf file. This contains sections, which have
@@ -277,16 +278,18 @@ func (parser *Parser) parseType () (
         if parser.token.Kind == lexer.TokenKindLBrace {
                 parser.nextToken()
                 
-                var points Type;
+                var points Type
                 points, worked, err = parser.parseType()
                 if !worked || err != nil { return }
 
-                what.points = &points;
+                what.points = &points
 
                 if !parser.expect (
                         lexer.TokenKindRBrace,
                         lexer.TokenKindInteger,
-                ) { return what, false, nil }
+                ) {
+                        return what, false, nil
+                }
         
                 // get the count, if there is one
                 if parser.token.Kind == lexer.TokenKindInteger {

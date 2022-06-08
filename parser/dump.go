@@ -198,7 +198,7 @@ func (what *Type) ToString () (description string) {
 }
 
 func (identifier *Identifier) ToString () (description string) {
-        if len(identifier.trail) < 1 { return "EMPTY"}
+        if len(identifier.trail) < 1 { return "EMPTY.IDENTIFIER"}
         description = identifier.trail[0]
         if len(identifier.trail) < 2 { return }
         

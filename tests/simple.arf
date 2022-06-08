@@ -4,6 +4,7 @@ module simple
 
 func rr main
         > argc:Int
+        > secondArg:Int
         > argv:{String}
         < status:Int
         ---

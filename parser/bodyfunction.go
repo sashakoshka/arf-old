@@ -45,6 +45,9 @@ func (parser *Parser) parseBodyFunction () (section *Function, err error) {
                 if parser.token.Kind == lexer.TokenKindSymbol {
                         switch parser.token.StringValue {
                         case "@":
+                                // TODO: throw error if marked as mutable, or
+                                // not as a pointer. the actual value inside can
+                                // be marked as whatever
                                 section.self.name,
                                 section.self.what,
                                 _, err =  parser.parseDeclaration()
@@ -53,31 +56,35 @@ func (parser *Parser) parseBodyFunction () (section *Function, err error) {
                                 break
 
                         case ">":
+                                // TODO: throw error if marked as mutable
                                 input := &Data {}
                                 input.name,
                                 input.what,
                                 _, err =  parser.parseDeclaration()
                                 if err != nil { return nil, err }
 
+                                section.inputs[input.name] = input
+                                if parser.endOfLine() { break}
+                                
                                 input.value,
                                 _, err = parser.parseDefaultValues(1)
                                 if err != nil { return nil, err }
-
-                                section.inputs[input.name] = input
                                 break
                         
                         case "<":
+                                // TODO: make always mutable
                                 output := &Data {}
                                 output.name,
                                 output.what,
                                 _, err =  parser.parseDeclaration()
                                 if err != nil { return nil, err }
 
+                                section.outputs[output.name] = output
+                                if parser.endOfLine() { break}
+                                
                                 output.value,
                                 _, err = parser.parseDefaultValues(1)
                                 if err != nil { return nil, err }
-
-                                section.outputs[output.name] = output
                                 break
 
                         default:
