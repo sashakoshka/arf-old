@@ -291,7 +291,7 @@ func (parser *Parser) parseType () (
                 ) {
                         return what, false, nil
                 }
-        
+                
                 // get the count, if there is one
                 if parser.token.Kind == lexer.TokenKindInteger {
                         what.items = parser.token.Value.(uint64)
@@ -310,6 +310,28 @@ func (parser *Parser) parseType () (
                 
                 what.name.trail, worked, err = parser.parseIdentifier()
                 if !worked || err != nil { return }
+        }
+                
+        // get an additional qualifier, if there is one
+        if parser.token.Kind == lexer.TokenKindColon {
+                parser.nextToken()
+                if !parser.expect(lexer.TokenKindName) {
+                        return what, false, nil
+                }
+
+                qualifier := parser.token.StringValue
+                switch (qualifier) {
+                case "mut":
+                        what.mutable = true
+                        break
+                default:
+                        parser.printError (
+                                parser.token.Column,
+                                "unknown type qualifier :" + qualifier)
+                        break
+                }
+                
+                parser.nextToken()
         }
 
         return what, true, nil

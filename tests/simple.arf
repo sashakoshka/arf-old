@@ -7,10 +7,7 @@ func rr main
         > argv:{String}
         < status:Int
         ---
-        let someVar:Int
-        let someVar:{Int}
-        let someVar:{{Int}}
-        # let someVar:{{{Int}}}
-        # let pointerToMutData:{Int:mut}
-        # let mutPointerToData:{Int}:mut
+        let someVar:{{{Int}}}
+        let pointerToMutData:{Int:mut}
+        let mutPointerToData:{Int}:mut
         # let mutPointerToPointerToMutData:{{Int:mut}}:mut
