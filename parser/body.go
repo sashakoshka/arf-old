@@ -278,11 +278,11 @@ func (parser *Parser) parseType () (
         if parser.token.Kind == lexer.TokenKindLBrace {
                 parser.nextToken()
                 
-                var points Type
-                points, worked, err = parser.parseType()
+                var typeThisPointsTo Type
+                typeThisPointsTo, worked, err = parser.parseType()
                 if !worked || err != nil { return }
 
-                what.points = &points
+                what.points = &typeThisPointsTo
 
                 if !parser.expect (
                         lexer.TokenKindRBrace,
@@ -311,5 +311,5 @@ func (parser *Parser) parseType () (
                 parser.nextToken()
         }
 
-        return what, false, nil
+        return what, true, nil
 }

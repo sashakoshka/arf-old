@@ -226,13 +226,16 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
                         return true
                 }
         }
+
+        errText := "unexpected "
         
         if parser.endOfLine() {
-                parser.printError(len(parser.line.Runes), errSurpriseEOL)
-                return false
+                errText += "end of line"
+        } else {
+                errText += currentKind.ToString() + " token"
         }
 
-        errText := "unexpected " + currentKind.ToString() + " token. expected "
+        errText += ". expected "
 
         if len(kinds) > 1 {
                 for _, kind := range kinds[:len(kinds) - 1] {
