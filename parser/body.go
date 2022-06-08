@@ -277,7 +277,8 @@ func (parser *Parser) parseType () (
         // if the type is braced, we have a pointer
         if parser.token.Kind == lexer.TokenKindLBrace {
                 parser.nextToken()
-                
+
+                // we must recurse to find what this type points to
                 var typeThisPointsTo Type
                 typeThisPointsTo, worked, err = parser.parseType()
                 if !worked || err != nil { return }
@@ -301,14 +302,14 @@ func (parser *Parser) parseType () (
                 }
                 
                 parser.nextToken()
+
+        // if the type is not braced, it is not a pointer
         } else {
                 // get the identifier of this declaration's type
                 what.name = Identifier {}
                 
                 what.name.trail, worked, err = parser.parseIdentifier()
                 if !worked || err != nil { return }
-
-                parser.nextToken()
         }
 
         return what, true, nil
