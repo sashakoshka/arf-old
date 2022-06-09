@@ -5,9 +5,9 @@ module simple
 func rr main
         > argc:Int
         > argv:{String}
-        < status:Int
+        < status:Int:mut
         ---
         let someVar:{{{Int}}}
         let pointerToMutData:{Int:mut}
         let mutPointerToData:{Int}:mut
-        # let mutPointerToPointerToMutData:{{Int:mut}}:mut
+        let mutPointerToPointerToMutData:{{Int:mut}}:mut

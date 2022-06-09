@@ -45,23 +45,44 @@ func (parser *Parser) parseBodyFunction () (section *Function, err error) {
                 if parser.token.Kind == lexer.TokenKindSymbol {
                         switch parser.token.StringValue {
                         case "@":
-                                // TODO: throw error if marked as mutable, or
-                                // not as a pointer. the actual value inside can
-                                // be marked as whatever
                                 section.self.name,
                                 section.self.what,
                                 _, err =  parser.parseDeclaration()
                                 if err != nil { return nil, err }
+                                
+                                if section.self.what.points == nil {
+                                        parser.printError (
+                                                parser.token.Column,
+                                                "method reciever must be a",
+                                                "pointer")
+                                        break
+                                }
+                                
+                                if section.self.what.mutable {
+                                        parser.printError (
+                                                parser.token.Column,
+                                                "method reciever cannot be",
+                                                "mutable")
+                                        break
+                                }
+                                
                                 section.isMember = true
                                 break
 
                         case ">":
-                                // TODO: throw error if marked as mutable
                                 input := &Data {}
                                 input.name,
                                 input.what,
                                 _, err =  parser.parseDeclaration()
                                 if err != nil { return nil, err }
+
+                                if input.what.mutable {
+                                        parser.printError (
+                                                parser.token.Column,
+                                                "function arguments cannot be",
+                                                "mutable")
+                                        break
+                                }
 
                                 section.inputs[input.name] = input
                                 if parser.endOfLine() { break}
@@ -72,12 +93,22 @@ func (parser *Parser) parseBodyFunction () (section *Function, err error) {
                                 break
                         
                         case "<":
-                                // TODO: make always mutable
                                 output := &Data {}
                                 output.name,
                                 output.what,
                                 _, err =  parser.parseDeclaration()
                                 if err != nil { return nil, err }
+
+                                if output.what.mutable {
+                                        parser.printWarning (
+                                                parser.token.Column,
+                                                "you don't need to mark return",
+                                                "values as mutable, they will",
+                                                "be anyways")
+                                        break
+                                }
+                                
+                                output.what.mutable = true
 
                                 section.outputs[output.name] = output
                                 if parser.endOfLine() { break}
