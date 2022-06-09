@@ -43,89 +43,8 @@ func (parser *Parser) parseBodyFunction () (section *Function, err error) {
                 ) { return nil, parser.skipBodySection() }
 
                 if parser.token.Kind == lexer.TokenKindSymbol {
-                        switch parser.token.StringValue {
-                        case "@":
-                                section.self.name,
-                                section.self.what,
-                                _, err =  parser.parseDeclaration()
-                                if err != nil { return nil, err }
-                                
-                                if section.self.what.points == nil {
-                                        parser.printError (
-                                                parser.token.Column,
-                                                "method reciever must be a",
-                                                "pointer")
-                                        break
-                                }
-                                
-                                if section.self.what.mutable {
-                                        parser.printError (
-                                                parser.token.Column,
-                                                "method reciever cannot be",
-                                                "mutable")
-                                        break
-                                }
-                                
-                                section.isMember = true
-                                break
-
-                        case ">":
-                                input := &Data {}
-                                input.name,
-                                input.what,
-                                _, err =  parser.parseDeclaration()
-                                if err != nil { return nil, err }
-
-                                if input.what.mutable {
-                                        parser.printError (
-                                                parser.token.Column,
-                                                "function arguments cannot be",
-                                                "mutable")
-                                        break
-                                }
-
-                                section.inputs[input.name] = input
-                                if parser.endOfLine() { break}
-                                
-                                input.value,
-                                _, err = parser.parseDefaultValues(1)
-                                if err != nil { return nil, err }
-                                break
-                        
-                        case "<":
-                                output := &Data {}
-                                output.name,
-                                output.what,
-                                _, err =  parser.parseDeclaration()
-                                if err != nil { return nil, err }
-
-                                if output.what.mutable {
-                                        parser.printWarning (
-                                                parser.token.Column,
-                                                "you don't need to mark return",
-                                                "values as mutable, they will",
-                                                "be anyways")
-                                        break
-                                }
-                                
-                                output.what.mutable = true
-
-                                section.outputs[output.name] = output
-                                if parser.endOfLine() { break}
-                                
-                                output.value,
-                                _, err = parser.parseDefaultValues(1)
-                                if err != nil { return nil, err }
-                                break
-
-                        default:
-                                parser.printError (
-                                        parser.token.Column,
-                                        "unknown argument type symbol '" +
-                                        parser.token.StringValue + "',",
-                                        "use either '@', '>', or '<'")
-                                break
-                        }
+                        err = parser.parseBodyFunctionArgumentFor(section)
+                        if err != nil { return }
                 }
                 
                 inHead = parser.token.Kind != lexer.TokenKindSeparator
@@ -138,6 +57,101 @@ func (parser *Parser) parseBodyFunction () (section *Function, err error) {
         block, err := parser.parseBodyFunctionBlock(0)
         section.root = block
         return
+}
+
+/* parseBodyFunctionArgumentFor parses a function argument for the specified
+ * function.
+ */
+func (parser *Parser) parseBodyFunctionArgumentFor (
+        section *Function,
+) (
+        err error,
+) {
+        switch parser.token.StringValue {
+        case "@":
+                section.self.name,
+                section.self.what,
+                _, err =  parser.parseDeclaration()
+                if err != nil { return err }
+                
+                if section.self.what.points == nil {
+                        parser.printError (
+                                parser.token.Column,
+                                "method reciever must be a",
+                                "pointer")
+                        break
+                }
+                
+                if section.self.what.mutable {
+                        parser.printError (
+                                parser.token.Column,
+                                "method reciever cannot be",
+                                "mutable")
+                        break
+                }
+                
+                section.isMember = true
+                break
+
+        case ">":
+                input := &Data {}
+                input.name,
+                input.what,
+                _, err =  parser.parseDeclaration()
+                if err != nil { return err }
+
+                if input.what.mutable {
+                        parser.printError (
+                                parser.token.Column,
+                                "function arguments cannot be",
+                                "mutable")
+                        break
+                }
+
+                section.inputs[input.name] = input
+                if parser.endOfLine() { break}
+                
+                input.value,
+                _, err = parser.parseDefaultValues(1)
+                if err != nil { return err }
+                break
+        
+        case "<":
+                output := &Data {}
+                output.name,
+                output.what,
+                _, err =  parser.parseDeclaration()
+                if err != nil { return err }
+
+                if output.what.mutable {
+                        parser.printWarning (
+                                parser.token.Column,
+                                "you don't need to mark return",
+                                "values as mutable, they will",
+                                "be anyways")
+                        break
+                }
+                
+                output.what.mutable = true
+
+                section.outputs[output.name] = output
+                if parser.endOfLine() { break}
+                
+                output.value,
+                _, err = parser.parseDefaultValues(1)
+                if err != nil { return err }
+                break
+
+        default:
+                parser.printError (
+                        parser.token.Column,
+                        "unknown argument type symbol '" +
+                        parser.token.StringValue + "',",
+                        "use either '@', '>', or '<'")
+                break
+        }
+
+        return nil
 }
 
 /* parseBodyFunctionBlock parses a block of function calls. This is done

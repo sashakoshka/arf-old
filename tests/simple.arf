@@ -1,13 +1,11 @@
 :arf
 module simple
+require "io"
 ---
 
 func rr main
         > argc:Int
         > argv:{String}
-        < status:Int:mut
+        < status:Int
         ---
-        let someVar:{{{Int}}}
-        let pointerToMutData:{Int:mut}
-        let mutPointerToData:{Int}:mut
-        let mutPointerToPointerToMutData:{{Int:mut}}:mut
+        io.println {argv 0}
