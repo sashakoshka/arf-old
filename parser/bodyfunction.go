@@ -212,7 +212,7 @@ func (parser *Parser) parseBodyFunctionBlock (
 }
 
 /* parseBodyFunctionCall parses a function call of a function body. This is done
- * recursively, it may eat up more lines than one.
+ * recursively, and it may eat up more lines than one.
  */
 func (parser *Parser) parseBodyFunctionCall (
         parentIndent int,
@@ -229,13 +229,15 @@ func (parser *Parser) parseBodyFunctionCall (
                 lexer.TokenKindName,
                 lexer.TokenKindString,
                 lexer.TokenKindSymbol)
-        // we have no idea what the users intent with that was, so try to move
-        // on to the next statement.
         if !match {
+                // we have no idea what the users intent with that was, so try
+                // to move on to the next statement.
                 parser.skipBodyFunctionCall(parentIndent, false)
                 return nil, nil
         }
-        
+
+        // if the first token found was a bracket, this statement is wrapped in
+        // brackets and we have to do some things differently
         bracketed := parser.token.Kind == lexer.TokenKindLBracket
         if bracketed {
                 // that wasn't the function name, so try to get the function
@@ -274,12 +276,14 @@ func (parser *Parser) parseBodyFunctionCall (
                 statement.command = Identifier { trail: trail }
         }
 
+        // get statement arguments
         complete := false
         for !complete {
                 match = parser.expect (
                         lexer.TokenKindNone,
                         lexer.TokenKindLBracket,
                         lexer.TokenKindRBracket,
+                        lexer.TokenKindLBrace,
                         lexer.TokenKindColon,
                         lexer.TokenKindName,
                         lexer.TokenKindString,

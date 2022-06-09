@@ -66,6 +66,11 @@ type Statement struct {
         externalCommand string
 }
 
+type Dereference struct {
+        dereferences *Argument
+        offset       uint64
+}
+
 type ArgumentKind int
 
 const (
@@ -73,11 +78,12 @@ const (
         ArgumentKindStatement
         ArgumentKindIdentifier
         ArgumentKindDefinition
+        ArgumentKindDereference
+        ArgumentKindString
+        ArgumentKindRune
         ArgumentKindInteger
         ArgumentKindSignedInteger
         ArgumentKindFloat
-        ArgumentKindString
-        ArgumentKindRune
 )
 
 type Argument struct {
@@ -86,6 +92,7 @@ type Argument struct {
         statementValue     *Statement
         identifierValue    Identifier
         definitionValue    Definition
+        dereferenceValue   Dereference
         stringValue        string
         runeValue          rune
         integerValue       uint64

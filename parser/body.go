@@ -192,48 +192,6 @@ func (parser *Parser) parseDeclaration () (
         return
 }
 
-/* parsePointerNotation parses a reference to a variable that uses pointer
- * notation. It must be of the form {Identifier N} where N is the optional
- * offset.
- */
-func (parser *Parser) parsePointerNotation () (
-        identifier Identifier,
-        offset     uint64,
-        worked     bool,
-        err        error,
-) {
-        offset = 1
-        
-        if !parser.expect(lexer.TokenKindLBrace) { return }
-
-        parser.nextToken()
-        if !parser.expect(lexer.TokenKindName) { return }
-
-        // get the identifier it is referring to
-        var trail []string
-        trail, worked, err = parser.parseIdentifier()
-        if !worked || err != nil { return }
-
-        identifier = Identifier { trail: trail }
-
-        if !parser.expect (
-                lexer.TokenKindRBrace,
-                lexer.TokenKindInteger,
-        ) { return }
-        
-        // get the count, if there is one
-        if parser.token.Kind == lexer.TokenKindInteger {
-                offset = parser.token.Value.(uint64)
-                parser.nextToken()
-                if !parser.expect(lexer.TokenKindRBrace) { return }
-        }
-        
-        parser.nextToken()
-
-        worked = true
-        return
-}
-
 /* parseIdentifier parses an identifier of the form name.name.name
  */
 func (parser *Parser) parseIdentifier () (
