@@ -297,8 +297,7 @@ func (parser *Parser) parseBodyFunctionCall (
                         return nil, err
                 }
 
-                switch parser.token.Kind {
-                case lexer.TokenKindNone:
+                if (parser.token.Kind == lexer.TokenKindNone) {
                         // if we have brackets, we can continue to parse the
                         // statement on the next line. if we don't, we are done
                         // parsing this statement.
@@ -307,51 +306,49 @@ func (parser *Parser) parseBodyFunctionCall (
                         } else {
                                 complete = true
                         }
-                        break
-                case lexer.TokenKindLBracket:
-                        childStatement, err := parser.parseBodyFunctionCall (
-                                parentIndent, parent)
-                        if err != nil { return nil, err }
-                        
-                        statement.arguments = append (
-                                statement.arguments,
-                                Argument {
-                                        kind: ArgumentKindStatement,
-                                        statementValue: childStatement,
-                                })
-                        break
-                        
-                case lexer.TokenKindRBracket:
+                        continue
+                } else if (parser.token.Kind == lexer.TokenKindRBracket) {
                         complete = true
-                        break
-                        
-                case lexer.TokenKindLBrace:
-                        // TODO: get pointer notation
-                        parser.nextToken()
-                        break
-                        
-                default:
-                        argument, worked, err := parser.parseArgument()
-                        if err != nil { return nil, err }
-                        if !worked { continue }
-
-                        statement.arguments = append (
-                                statement.arguments,
-                                argument)
-                        break
+                        continue
                 }
+
+                argument, worked, err := parser.parseArgument (
+                        parentIndent, parent)
+                if err != nil { return nil, err }
+                if !worked { continue }
+
+                statement.arguments = append (
+                        statement.arguments,
+                        argument)
         }
         
         parser.nextLine()
         return
 }
 
-func (parser *Parser) parseArgument () (
+func (parser *Parser) parseArgument (
+        parentIndent int,
+        parent *Block,
+) (
         argument Argument,
         worked bool,
         err error,
 ) {
         switch parser.token.Kind {
+        case lexer.TokenKindLBracket:
+                childStatement, err := parser.parseBodyFunctionCall (
+                        parentIndent, parent)
+                if err != nil { return argument, false, err }
+                
+                argument.kind = ArgumentKindStatement
+                argument.statementValue = childStatement
+                break
+                
+        case lexer.TokenKindLBrace:
+                // TODO: get pointer notation
+                parser.nextToken()
+                break
+                                
         case lexer.TokenKindName:
                 trail, worked, err := parser.parseIdentifier()
                 if err != nil { return argument, false, err }

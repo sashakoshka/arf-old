@@ -8,5 +8,5 @@ func rr main
         > argv:{String}
         < status:Int
         ---
-        [foo variableDefinition:{{String:mut}}:mut [ a ["sdfkj"][ asdasd]]
-                [bar "askdjasldkj" 'H' 2340 0x432A]]
+        set varName:{String} "hello"
+        io.println {varName 5}
