@@ -183,19 +183,18 @@ func (parser *Parser) parseBodyFunctionBlock (
                 } else if parser.line.Indent == parentIndent + 1 {
                         // call
                         var statement *Statement
-                        statement, err = parser.parseBodyFunctionCall (
+                        var worked bool
+                        statement, worked, err = parser.parseBodyFunctionCall (
                                 parentIndent + 1,
                                 block)
-                        if err != nil { return }
+                        if err != nil || !worked { return }
 
-                        if statement != nil {
-                                block.items = append (
-                                        block.items,
-                                        BlockOrStatement {
-                                                statement: statement,
-                                        },
-                                )
-                        }
+                        block.items = append (
+                                block.items,
+                                BlockOrStatement {
+                                        statement: statement,
+                                },
+                        )
                         
                 } else if parser.line.Indent == parentIndent + 2 {
                         // block
@@ -229,6 +228,7 @@ func (parser *Parser) parseBodyFunctionCall (
         parent *Block,
 ) (
         statement *Statement,
+        worked bool,
         err error,
 ) {
         statement = &Statement {}
@@ -242,7 +242,7 @@ func (parser *Parser) parseBodyFunctionCall (
                 // we have no idea what the users intent with that was, so try
                 // to move on to the next statement.
                 parser.skipBodyFunctionCall(parentIndent, false)
-                return nil, nil
+                return nil, false, nil
         }
 
         // if the first token found was a bracket, this statement is wrapped in
@@ -252,6 +252,7 @@ func (parser *Parser) parseBodyFunctionCall (
                 // that wasn't the function name, so try to get the function
                 // name again.
                 parser.nextToken()
+                println("AAAA", parser.token.StringValue)
                 match = parser.expect (
                         lexer.TokenKindName,
                         lexer.TokenKindString,
@@ -259,7 +260,7 @@ func (parser *Parser) parseBodyFunctionCall (
                 if !match {
                         err = parser.skipBodyFunctionCall (
                                 parentIndent, bracketed)
-                        return nil, err
+                        return nil, false, err
                 }
         }
 
@@ -277,10 +278,10 @@ func (parser *Parser) parseBodyFunctionCall (
         } else {
                 // this statement calls a reachable function
                 trail, worked, err := parser.parseIdentifier()
-                        if err != nil { return nil, err }
+                        if err != nil { return nil, false, err }
                 if !worked {
                         parser.skipBodyFunctionCall(parentIndent, bracketed)
-                        return nil, nil
+                        return nil, false, nil
                 }
 
                 statement.command = Identifier { trail: trail }
@@ -303,7 +304,7 @@ func (parser *Parser) parseBodyFunctionCall (
                 if !match {
                         err = parser.skipBodyFunctionCall (
                                 parentIndent, bracketed)
-                        return nil, err
+                        return nil, false, err
                 }
 
                 if (parser.token.Kind == lexer.TokenKindNone) {
@@ -323,7 +324,7 @@ func (parser *Parser) parseBodyFunctionCall (
 
                 argument, worked, err := parser.parseArgument (
                         parentIndent, parent)
-                if err != nil { return nil, err }
+                if err != nil { return nil, false, err }
                 if !worked { continue }
 
                 statement.arguments = append (
@@ -332,7 +333,7 @@ func (parser *Parser) parseBodyFunctionCall (
         }
         
         parser.nextLine()
-        return
+        return statement, true, nil
 }
 
 func (parser *Parser) parseArgument (
@@ -345,9 +346,14 @@ func (parser *Parser) parseArgument (
 ) {
         switch parser.token.Kind {
         case lexer.TokenKindLBracket:
-                childStatement, err := parser.parseBodyFunctionCall (
-                        parentIndent, parent)
+                childStatement,
+                worked,
+                err := parser.parseBodyFunctionCall (parentIndent, parent)
                 if err != nil { return argument, false, err }
+                if !worked {
+                        parser.nextToken()
+                        return argument, false, nil
+                }
                 
                 argument.kind = ArgumentKindStatement
                 argument.statementValue = childStatement

@@ -9,4 +9,6 @@ func rr main
         < status:Int
         ---
         set varName:{String} "hello"
-        io.println {[varName] 5}
+        # io.println {[varName] 5}
+        [a [[segfault]]]
+
