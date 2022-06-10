@@ -293,7 +293,7 @@ func (parser *Parser) parseBodyFunctionCall (
         // get statement arguments
         complete := false
         for !complete {
-                match = parser.expect (
+                if !parser.expect (
                         lexer.TokenKindNone,
                         lexer.TokenKindLBracket,
                         lexer.TokenKindRBracket,
@@ -303,8 +303,8 @@ func (parser *Parser) parseBodyFunctionCall (
                         lexer.TokenKindRune,
                         lexer.TokenKindInteger,
                         lexer.TokenKindSignedInteger,
-                        lexer.TokenKindFloat)
-                if !match {
+                        lexer.TokenKindFloat,
+                ) {
                         err = parser.skipBodyFunctionCall (
                                 parentIndent, bracketed)
                         return nil, false, err
@@ -411,6 +411,7 @@ func (parser *Parser) parseArgument (
                         return argument, false, nil
                 }
 
+                println("asdsa")
                 argument.kind = ArgumentKindDefinition
                 argument.definitionValue = Definition {
                         name: argument.identifierValue,

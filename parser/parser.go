@@ -221,9 +221,11 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
                 }
         }
 
-        for _, kind := range kinds {
-                if currentKind == kind {
-                        return true
+        if !parser.endOfFile() {
+                for _, kind := range kinds {
+                        if currentKind == kind {
+                                return true
+                        }
                 }
         }
 
