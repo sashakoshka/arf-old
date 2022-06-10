@@ -8,4 +8,5 @@ func rr main
         > argv:{String}
         < status:Int
         ---
-        io.println {argv 0}
+        [foo variableDefinition:{{String:mut}}:mut [ a ["sdfkj"][ asdasd]]
+                [bar "askdjasldkj" 'H' 2340 0x432A]]

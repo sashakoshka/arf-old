@@ -296,8 +296,6 @@ func (parser *Parser) parseBodyFunctionCall (
                         return nil, err
                 }
 
-                argument := Argument {}
-
                 switch parser.token.Kind {
                 case lexer.TokenKindNone:
                         // if we have brackets, we can continue to parse the
@@ -308,113 +306,148 @@ func (parser *Parser) parseBodyFunctionCall (
                         } else {
                                 complete = true
                         }
-                        continue
-                        
-                case lexer.TokenKindName:
-                        trail, worked, err := parser.parseIdentifier()
-                        if err != nil { return nil, err }
-                        if !worked {
-                                parser.nextToken()
-                                continue
-                        }
-
-                        argument.kind  = ArgumentKindIdentifier
-                        argument.identifierValue = Identifier {
-                                trail: trail,
-                        }
-
-                        // if there is no colon after this, this is not a
-                        // definition and we don't need to do anything else...
-                        if (parser.token.Kind != lexer.TokenKindColon) { break }
-                        // ... but if there is:
-
-                        if len(argument.identifierValue.trail) != 1 {
-                                parser.printError (
-                                        parser.token.Column,
-                                        "cannot use member selection in " +
-                                        "definition, name cannot have dots " +
-                                        "in it")
-                                continue
-                        }
-
-                        parser.nextToken()
-                        if !parser.expect (
-                                lexer.TokenKindLBrace,
-                                lexer.TokenKindName,
-                        ) {
-                                parser.nextToken()
-                                continue
-                        }
-
-                        argument.kind = ArgumentKindDefinition
-                        argument.definitionValue = Definition {
-                                name: argument.identifierValue,
-                        }
-
-                        what, worked, err := parser.parseType()
-                        if err != nil { return nil, err }
-                        if !worked {
-                                parser.nextToken()
-                                continue
-                        }
-                        
-                        argument.definitionValue.what = what
                         break
-                        
-                case lexer.TokenKindString:
-                        argument.kind = ArgumentKindString
-                        argument.stringValue = parser.token.StringValue
-                        parser.nextToken()
-                        break
-                        
-                case lexer.TokenKindRune:
-                        argument.kind = ArgumentKindRune
-                        argument.runeValue = parser.token.Value.(rune)
-                        parser.nextToken()
-                        break
-                        
-                case lexer.TokenKindInteger:
-                        argument.kind = ArgumentKindInteger
-                        argument.integerValue = parser.token.Value.(uint64)
-                        parser.nextToken()
-                        break
-                        
-                case lexer.TokenKindSignedInteger:
-                        argument.kind = ArgumentKindSignedInteger
-                        argument.signedIntegerValue = parser.token.Value.(int64)
-                        parser.nextToken()
-                        break
-                        
-                case lexer.TokenKindFloat:
-                        argument.kind = ArgumentKindFloat
-                        argument.floatValue = parser.token.Value.(float64)
-                        parser.nextToken()
-                        break
-                        
                 case lexer.TokenKindLBracket:
                         childStatement, err := parser.parseBodyFunctionCall (
                                 parentIndent, parent)
                         if err != nil { return nil, err }
-                        argument.kind = ArgumentKindStatement
-                        argument.statementValue = childStatement
+                        
+                        statement.arguments = append (
+                                statement.arguments,
+                                Argument {
+                                        kind: ArgumentKindStatement,
+                                        statementValue: childStatement,
+                                })
                         break
                         
                 case lexer.TokenKindRBracket:
                         complete = true
-                        continue
+                        break
                         
                 case lexer.TokenKindLBrace:
                         // TODO: get pointer notation
                         parser.nextToken()
-                        continue
-                }
+                        break
+                        
+                default:
+                        argument, worked, err := parser.parseArgument()
+                        if err != nil { return nil, err }
+                        if !worked { continue }
 
-                statement.arguments = append(statement.arguments, argument)
+                        statement.arguments = append (
+                                statement.arguments,
+                                argument)
+                        break
+                }
         }
         
         parser.nextLine()
         return
 }
+
+func (parser *Parser) parseArgument () (
+        argument Argument,
+        worked bool,
+        err error,
+) {
+        switch parser.token.Kind {
+        case lexer.TokenKindName:
+                trail, worked, err := parser.parseIdentifier()
+                if err != nil { return argument, false, err }
+                if !worked {
+                        parser.nextToken()
+                        return argument, false, nil
+                }
+
+                argument.kind  = ArgumentKindIdentifier
+                argument.identifierValue = Identifier {
+                        trail: trail,
+                }
+
+                // if there is no colon after this, this is not a
+                // definition and we don't need to do anything else...
+                if (parser.token.Kind != lexer.TokenKindColon) { break }
+                // ... but if there is:
+
+                if len(argument.identifierValue.trail) != 1 {
+                        parser.printError (
+                                parser.token.Column,
+                                "cannot use member selection in " +
+                                "definition, name cannot have dots " +
+                                "in it")
+                        return argument, false, nil
+                }
+
+                parser.nextToken()
+                if !parser.expect (
+                        lexer.TokenKindLBrace,
+                        lexer.TokenKindName,
+                ) {
+                        parser.nextToken()
+                        return argument, false, nil
+                }
+
+                argument.kind = ArgumentKindDefinition
+                argument.definitionValue = Definition {
+                        name: argument.identifierValue,
+                }
+
+                what, worked, err := parser.parseType()
+                if err != nil { return argument, false, err }
+                if !worked {
+                        parser.nextToken()
+                        return argument, false, nil
+                }
+                
+                argument.definitionValue.what = what
+                break
+                
+        case lexer.TokenKindString:
+                argument.kind = ArgumentKindString
+                argument.stringValue = parser.token.StringValue
+                parser.nextToken()
+                break
+                
+        case lexer.TokenKindRune:
+                argument.kind = ArgumentKindRune
+                argument.runeValue = parser.token.Value.(rune)
+                parser.nextToken()
+                break
+                
+        case lexer.TokenKindInteger:
+                argument.kind = ArgumentKindInteger
+                argument.integerValue = parser.token.Value.(uint64)
+                parser.nextToken()
+                break
+                
+        case lexer.TokenKindSignedInteger:
+                argument.kind = ArgumentKindSignedInteger
+                argument.signedIntegerValue = parser.token.Value.(int64)
+                parser.nextToken()
+                break
+                
+        case lexer.TokenKindFloat:
+                argument.kind = ArgumentKindFloat
+                argument.floatValue = parser.token.Value.(float64)
+                parser.nextToken()
+                break
+        }
+
+        return argument, true, nil
+}
+
+// /* parseDereference parses a dereference of a value of the form {value N} where
+ // * N is an optional offset.
+ // */
+// func (parser *Parser) parseDereference () (
+        // dereference Dereference,
+        // worked bool,
+        // err error,
+// ) {
+        // // TODO: parse dereference similarly to parseType, also create a parse
+        // // argument function and call that from within here in order to
+        // // recurse.eheh
+// }
 
 /* skipBodyFunctionCall skips to the next body function call, or indentation
  * drop.
