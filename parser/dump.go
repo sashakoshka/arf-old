@@ -142,7 +142,11 @@ func (block *Block) Dump (indent int) {
 func (statement *Statement) Dump (indent int) {
         printIndent(indent)
         fmt.Print("[")
-        fmt.Print(statement.command.ToString())
+        if (statement.external) {
+                fmt.Print("\"", statement.externalCommand, "\"")
+        } else {
+                fmt.Print(statement.command.ToString())
+        }
 
         for _, argument := range statement.arguments {
                 fmt.Println()

@@ -258,6 +258,7 @@ func (parser *Parser) parseBodyFunctionCall (
                 // this statement calls a function of arbitrary name
                 statement.external = true
                 statement.externalCommand = parser.token.StringValue
+                parser.nextToken()
         } else if parser.token.Kind == lexer.TokenKindSymbol {
                 // this statement is an operator
                 statement.command = Identifier {
