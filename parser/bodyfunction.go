@@ -167,6 +167,15 @@ func (parser *Parser) parseBodyFunctionBlock (
                 datas: make(map[string] *Data),
         }
 
+        if (parser.line.Indent > 4) {
+                parser.printWarning (
+                        parser.token.Column,
+                        "indentation level of",
+                        parser.line.Indent,
+                        "is difficult to read.",
+                        "consider breaking up this function.")
+        }
+
         for {
                 if parser.line.Indent <= parentIndent {
                         break
