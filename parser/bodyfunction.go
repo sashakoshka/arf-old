@@ -284,7 +284,6 @@ func (parser *Parser) parseBodyFunctionCall (
                         lexer.TokenKindLBracket,
                         lexer.TokenKindRBracket,
                         lexer.TokenKindLBrace,
-                        lexer.TokenKindColon,
                         lexer.TokenKindName,
                         lexer.TokenKindString,
                         lexer.TokenKindRune,
@@ -323,29 +322,19 @@ func (parser *Parser) parseBodyFunctionCall (
                         argument.identifierValue = Identifier {
                                 trail: trail,
                         }
-                        break
 
-                case lexer.TokenKindColon:
-                        discardAfterParse := false
-                
-                        previousArgument := &statement.arguments [
-                                len(statement.arguments) - 1]
-                        
-                        if previousArgument.kind != ArgumentKindIdentifier {
-                                parser.printError (
-                                        parser.token.Column,
-                                        "type specifier may only follow an " +
-                                        "identifier")
-                                discardAfterParse = true
-                        }
+                        // if there is no colon after this, this is not a
+                        // definition and we don't need to do anything else...
+                        if (parser.token.Kind != lexer.TokenKindColon) { break }
+                        // ... but if there is:
 
-                        if len(previousArgument.identifierValue.trail) != 1 {
+                        if len(argument.identifierValue.trail) != 1 {
                                 parser.printError (
                                         parser.token.Column,
                                         "cannot use member selection in " +
                                         "definition, name cannot have dots " +
                                         "in it")
-                                discardAfterParse = true
+                                continue
                         }
 
                         parser.nextToken()
@@ -357,11 +346,9 @@ func (parser *Parser) parseBodyFunctionCall (
                                 continue
                         }
 
-                        newArgument := Argument {
-                                kind: ArgumentKindDefinition,
-                                definitionValue: Definition {
-                                        name: previousArgument.identifierValue,
-                                },
+                        argument.kind = ArgumentKindDefinition
+                        argument.definitionValue = Definition {
+                                name: argument.identifierValue,
                         }
 
                         what, worked, err := parser.parseType()
@@ -371,15 +358,8 @@ func (parser *Parser) parseBodyFunctionCall (
                                 continue
                         }
                         
-                        newArgument.definitionValue.what = what
-
-                        if discardAfterParse {
-                                statement.arguments = statement.arguments [
-                                        :len(statement.arguments) - 1]
-                        } else {
-                                *previousArgument = newArgument
-                        }
-                        continue
+                        argument.definitionValue.what = what
+                        break
                         
                 case lexer.TokenKindString:
                         argument.kind = ArgumentKindString
