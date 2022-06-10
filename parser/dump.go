@@ -149,38 +149,56 @@ func (statement *Statement) Dump (indent int) {
         }
 
         for _, argument := range statement.arguments {
-                fmt.Println()
-                if argument.kind == ArgumentKindStatement {
-                        argument.statementValue.Dump(indent + 1)
-                        continue
-                }
-                
-                printIndent(indent + 1)
-                switch argument.kind {
-                case ArgumentKindIdentifier:
-                        fmt.Print(argument.identifierValue.ToString())
-                        break
-                case ArgumentKindDefinition:
-                        fmt.Print(argument.definitionValue.ToString())
-                        break
-                case ArgumentKindInteger:
-                        fmt.Print(argument.integerValue)
-                        break
-                case ArgumentKindSignedInteger:
-                        fmt.Print(argument.signedIntegerValue)
-                        break
-                case ArgumentKindFloat:
-                        fmt.Print(argument.floatValue)
-                        break
-                case ArgumentKindString:
-                        fmt.Print("\"", argument.stringValue, "\"")
-                        break
-                case ArgumentKindRune:
-                        fmt.Print("'", string(argument.runeValue), "'")
-                        break
-                }
+                argument.Dump(indent)
         }
         fmt.Print("]")
+}
+
+func (dereference *Dereference) Dump (indent int) {
+        printIndent(indent)
+        fmt.Print("{")
+        dereference.dereferences.Dump(indent)
+        fmt.Println()
+        printIndent(indent)
+        fmt.Print(dereference.offset, " }")
+}
+
+func (argument *Argument) Dump (indent int) {
+        fmt.Println()
+        if argument.kind == ArgumentKindStatement {
+                argument.statementValue.Dump(indent + 1)
+                return
+        }
+        
+        if argument.kind == ArgumentKindDereference {
+                argument.dereferenceValue.Dump(indent + 1)
+                return
+        }
+        
+        printIndent(indent + 1)
+        switch argument.kind {
+        case ArgumentKindIdentifier:
+                fmt.Print(argument.identifierValue.ToString())
+                break
+        case ArgumentKindDefinition:
+                fmt.Print(argument.definitionValue.ToString())
+                break
+        case ArgumentKindInteger:
+                fmt.Print(argument.integerValue)
+                break
+        case ArgumentKindSignedInteger:
+                fmt.Print(argument.signedIntegerValue)
+                break
+        case ArgumentKindFloat:
+                fmt.Print(argument.floatValue)
+                break
+        case ArgumentKindString:
+                fmt.Print("\"", argument.stringValue, "\"")
+                break
+        case ArgumentKindRune:
+                fmt.Print("'", string(argument.runeValue), "'")
+                break
+        }
 }
 
 func (what *Type) ToString () (description string) {

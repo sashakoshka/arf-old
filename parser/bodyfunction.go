@@ -354,8 +354,16 @@ func (parser *Parser) parseArgument (
                 break
                 
         case lexer.TokenKindLBrace:
-                // TODO: get pointer notation
-                parser.nextToken()
+                dereference,
+                worked, err := parser.parseDereference(parentIndent, parent)
+                if err != nil { return argument, false, err }
+                if !worked {
+                        parser.nextToken()
+                        return argument, false, nil
+                }
+
+                argument.kind = ArgumentKindDereference
+                argument.dereferenceValue = dereference
                 break
                                 
         case lexer.TokenKindName:
@@ -443,18 +451,67 @@ func (parser *Parser) parseArgument (
         return argument, true, nil
 }
 
-// /* parseDereference parses a dereference of a value of the form {value N} where
- // * N is an optional offset.
- // */
-// func (parser *Parser) parseDereference () (
-        // dereference Dereference,
-        // worked bool,
-        // err error,
-// ) {
-        // // TODO: parse dereference similarly to parseType, also create a parse
-        // // argument function and call that from within here in order to
-        // // recurse.eheh
-// }
+/* parseDereference parses a dereference of a value of the form {value N} where
+ * N is an optional offset.
+ */
+func (parser *Parser) parseDereference (
+        parentIndent int,
+        parent *Block,
+) (
+        dereference Dereference,
+        worked bool,
+        err error,
+) {
+        if !parser.expect (lexer.TokenKindLBrace) {
+                return dereference, false, nil
+        }
+        parser.nextToken()
+        
+        match := parser.expect (
+                lexer.TokenKindNone,
+                lexer.TokenKindLBracket,
+                lexer.TokenKindRBracket,
+                lexer.TokenKindLBrace,
+                lexer.TokenKindName,
+                lexer.TokenKindString,
+                lexer.TokenKindRune,
+                lexer.TokenKindInteger,
+                lexer.TokenKindSignedInteger,
+                lexer.TokenKindFloat)
+        if !match {
+                return dereference, false, nil
+        }
+
+        if (parser.token.Kind == lexer.TokenKindNone) {
+                parser.nextLine()
+        }
+        
+        argument, worked, err := parser.parseArgument (
+                parentIndent, parent)
+        if err != nil || !worked { return dereference, false, err }
+
+        dereference.dereferences = &argument
+
+        if !parser.expect (
+                lexer.TokenKindRBrace,
+                lexer.TokenKindInteger,
+        ) {
+                return dereference, false, nil
+        }
+        
+        // get the count, if there is one
+        if parser.token.Kind == lexer.TokenKindInteger {
+                dereference.offset = parser.token.Value.(uint64)
+                parser.nextToken()
+                if !parser.expect(lexer.TokenKindRBrace) {
+                        return dereference, false, nil
+                }
+        }
+        
+        parser.nextToken()
+
+        return dereference, true, nil
+}
 
 /* skipBodyFunctionCall skips to the next body function call, or indentation
  * drop.
