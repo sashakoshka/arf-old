@@ -257,6 +257,8 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
  * the end of the line was reached.
  */
 func (parser *Parser) nextToken () (done bool) {
+        if parser.endOfFile() { return true }
+
         parser.tokenIndex ++
         if parser.endOfLine() {
                 parser.token = &lexer.Token { Kind: lexer.TokenKindNone }
@@ -303,14 +305,22 @@ func (parser *Parser) printMistake (
         column int,
         cause ...interface{},
 ) {
-        actColumn := column + parser.line.Indent * 8 + 1
+        var line *lexer.Line
+
+        if parser.endOfFile() {
+                line = parser.lines[len(parser.lines) - 1]
+        } else {
+                line = parser.line
+        }
+        
+        actColumn := line.Indent * 8 + 1
         
         fmt.Println (
                 kind, "\033[90min\033[0m", parser.fileName,
-                "\033[34m" + strconv.Itoa(parser.line.Row) + ":" +
+                "\033[34m" + strconv.Itoa(line.Row) + ":" +
                 strconv.Itoa(actColumn),
                 "\033[90mof\033[0m", parser.module.name)
-        fmt.Println("   ", parser.line.Value)
+        fmt.Println("   ", line.Value)
 
         fmt.Print("    ")
         for column > 0 {

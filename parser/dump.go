@@ -159,7 +159,7 @@ func (dereference *Dereference) Dump (indent int) {
         fmt.Print("{")
         dereference.dereferences.Dump(indent)
         fmt.Println()
-        printIndent(indent)
+        printIndent(indent + 1)
         fmt.Print(dereference.offset, " }")
 }
 
