@@ -229,8 +229,11 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
 
         errText := "unexpected "
         errColumn := parser.token.Column
-        
-        if parser.endOfLine() {
+
+        if parser.endOfFile() {
+                errText += "end of file"
+                errColumn = len(parser.lines[len(parser.lines) - 1].Runes)
+        } else if parser.endOfLine() {
                 errText += "end of line"
                 errColumn = len(parser.line.Runes)
         } else {

@@ -252,7 +252,6 @@ func (parser *Parser) parseBodyFunctionCall (
                 // that wasn't the function name, so try to get the function
                 // name again.
                 parser.nextToken()
-                println("AAAA", parser.token.StringValue)
                 match = parser.expect (
                         lexer.TokenKindName,
                         lexer.TokenKindString,
@@ -472,29 +471,26 @@ func (parser *Parser) parseDereference (
                 return dereference, false, nil
         }
         parser.nextToken()
+
+        if (parser.token.Kind == lexer.TokenKindNone) {
+                // if we are at the end of the line, just go on to the next one
+                parser.nextLine()
+        }
         
-        match := parser.expect (
-                lexer.TokenKindNone,
+        if !parser.expect (
                 lexer.TokenKindLBracket,
-                lexer.TokenKindRBracket,
                 lexer.TokenKindLBrace,
                 lexer.TokenKindName,
                 lexer.TokenKindString,
-                lexer.TokenKindRune,
                 lexer.TokenKindInteger,
-                lexer.TokenKindSignedInteger,
-                lexer.TokenKindFloat)
-        if !match {
-                return dereference, false, nil
-        }
-
-        if (parser.token.Kind == lexer.TokenKindNone) {
-                parser.nextLine()
-        }
+        ) { return dereference, false, nil }
         
         argument, worked, err := parser.parseArgument (
                 parentIndent, parent)
         if err != nil || !worked { return dereference, false, err }
+        parser.nextToken()
+        println(parser.line)
+        println("ASSADKJSAD", parser.token.StringValue)
 
         dereference.dereferences = &argument
 
