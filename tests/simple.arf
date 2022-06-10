@@ -8,7 +8,10 @@ func rr main
         > argv:{String}
         < status:Int
         ---
-        set varName:{String} "hello"
-        io.println {
-                [varName] 5}
+        # set varName:{String} "hello"
+        # io.println {[varname] 5}
+
+        test [hello
+                argument]
+        [foo bar]
 

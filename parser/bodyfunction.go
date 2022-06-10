@@ -196,6 +196,10 @@ func (parser *Parser) parseBodyFunctionBlock (
                                 },
                         )
                         
+                        if parser.endOfLine() {
+                                parser.nextLine()
+                        }
+                        
                 } else if parser.line.Indent == parentIndent + 2 {
                         // block
                         var childBlock *Block
@@ -230,7 +234,7 @@ func (parser *Parser) parseBodyFunctionCall (
         statement *Statement,
         worked bool,
         err error,
-) {
+) {       
         statement = &Statement {}
 
         match := parser.expect (
@@ -318,6 +322,7 @@ func (parser *Parser) parseBodyFunctionCall (
                         continue
                 } else if (parser.token.Kind == lexer.TokenKindRBracket) {
                         complete = true
+                        parser.nextToken()
                         continue
                 }
 
@@ -331,7 +336,6 @@ func (parser *Parser) parseBodyFunctionCall (
                         argument)
         }
         
-        parser.nextLine()
         return statement, true, nil
 }
 
@@ -488,9 +492,6 @@ func (parser *Parser) parseDereference (
         argument, worked, err := parser.parseArgument (
                 parentIndent, parent)
         if err != nil || !worked { return dereference, false, err }
-        parser.nextToken()
-        println(parser.line)
-        println("ASSADKJSAD", parser.token.StringValue)
 
         dereference.dereferences = &argument
 
@@ -524,14 +525,12 @@ func (parser *Parser) skipBodyFunctionCall (
 ) (
         err error,
 ) {
-        // if the function isn't bracketed, we can just go on to the next line
-        // without any worries
-        if !bracketed {
-                parser.nextLine()
-                return
-        }
-
         depth := 1
+        
+        if !bracketed {
+                depth --;
+        }
+        
         for {
                 if parser.endOfFile() { return }
                 if parser.endOfLine() { parser.nextLine() }
