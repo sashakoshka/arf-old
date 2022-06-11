@@ -404,7 +404,6 @@ func (parser *Parser) parseArgument (
                         lexer.TokenKindName,
                 ) { return argument, false, nil }
 
-                println("asdsa")
                 argument.kind = ArgumentKindDefinition
                 argument.definitionValue = Definition {
                         name: argument.identifierValue,
@@ -477,11 +476,17 @@ func (parser *Parser) parseDereference (
                 lexer.TokenKindName,
                 lexer.TokenKindString,
                 lexer.TokenKindInteger,
-        ) { return dereference, false, nil }
+        ) {
+                parser.skipDereference()
+                return dereference, false, nil
+        }
         
         argument, worked, err := parser.parseArgument (
                 parentIndent, parent)
-        if err != nil || !worked { return dereference, false, err }
+        if err != nil || !worked {
+                parser.skipDereference()
+                return dereference, false, err
+        }
 
         dereference.dereferences = &argument
 
@@ -489,6 +494,7 @@ func (parser *Parser) parseDereference (
                 lexer.TokenKindRBrace,
                 lexer.TokenKindInteger,
         ) {
+                parser.skipDereference()
                 return dereference, false, nil
         }
         
@@ -497,6 +503,7 @@ func (parser *Parser) parseDereference (
                 dereference.offset = parser.token.Value.(uint64)
                 parser.nextToken()
                 if !parser.expect(lexer.TokenKindRBrace) {
+                        parser.skipDereference()
                         return dereference, false, nil
                 }
         }
@@ -506,8 +513,8 @@ func (parser *Parser) parseDereference (
         return dereference, true, nil
 }
 
-/* skipBodyFunctionCall skips to the next body function call, or indentation
- * drop.
+/* skipBodyFunctionCall skips to the end of the current statement, or
+ * indentation drop.
  */
 func (parser *Parser) skipBodyFunctionCall (
         parentIndent int,
@@ -537,5 +544,26 @@ func (parser *Parser) skipBodyFunctionCall (
         }
 
         parser.nextLine()
+        return
+}
+
+/* skipDereference skips to the end of the current dereference.
+ */
+func (parser *Parser) skipDereference () (err error) {
+        depth := 1
+        
+        for {
+                if parser.endOfFile() { return }
+                if parser.endOfLine() { parser.nextLine() }
+
+                if parser.token.Kind == lexer.TokenKindLBrace { depth ++ }
+                if parser.token.Kind == lexer.TokenKindRBrace { depth -- }
+
+                if depth == 0 { break }
+        
+                parser.nextToken()
+        }
+
+        parser.nextToken()
         return
 }
