@@ -48,10 +48,23 @@ These are things that still need to be done:
 - [ ] Compile any file with options by passing command line arguments
 - [ ] Convert Arf module to Arf header file (so we can have shared libraries)
 - [ ] Convert C header file to Arf header file
-- [ ] Modular Arf standard library (written in arf)
+- [ ] Modular Arf standard library (written in Arf)
   - [ ] I/O
   - [ ] String manipulation
   - [ ] Memory management
-  - [ ] Option to use malloc as backend, for C library compatibility
   - [ ] Networking
   - [ ] Multithreading
+
+These aren't necessary for making Arf a full-fledged language, but they would
+make it actually useful:
+
+- [ ] Option to use C stdlib for memory allocation backend, for compatibility
+      with libraries written in C
+- [ ] Rewrite some coreutils
+- [ ] Make sure it works with essential libraries
+  - [ ] XCB
+  - [ ] Wayland
+  - [ ] OpenGL
+  - [ ] Cairo
+  - [ ] GTK
+  - [ ] OpenSSL (or similar)
