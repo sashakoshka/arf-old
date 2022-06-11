@@ -365,11 +365,7 @@ func (parser *Parser) parseArgument (
         case lexer.TokenKindLBrace:
                 dereference,
                 worked, err := parser.parseDereference(parentIndent, parent)
-                if err != nil { return argument, false, err }
-                if !worked {
-                        parser.nextToken()
-                        return argument, false, nil
-                }
+                if err != nil || !worked { return argument, false, err }
 
                 argument.kind = ArgumentKindDereference
                 argument.dereferenceValue = dereference
@@ -406,10 +402,7 @@ func (parser *Parser) parseArgument (
                 if !parser.expect (
                         lexer.TokenKindLBrace,
                         lexer.TokenKindName,
-                ) {
-                        parser.nextToken()
-                        return argument, false, nil
-                }
+                ) { return argument, false, nil }
 
                 println("asdsa")
                 argument.kind = ArgumentKindDefinition
@@ -418,11 +411,7 @@ func (parser *Parser) parseArgument (
                 }
 
                 what, worked, err := parser.parseType()
-                if err != nil { return argument, false, err }
-                if !worked {
-                        parser.nextToken()
-                        return argument, false, nil
-                }
+                if err != nil || !worked { return argument, false, err }
                 
                 argument.definitionValue.what = what
                 break
@@ -529,7 +518,7 @@ func (parser *Parser) skipBodyFunctionCall (
         depth := 1
         
         if !bracketed {
-                depth --;
+                depth --
         }
         
         for {

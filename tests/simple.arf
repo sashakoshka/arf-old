@@ -11,6 +11,6 @@ func rr main
         # set varName:{String} "hello"
         # io.println {[varname] 5}
 
-        [test argument :]
+        [test argument:String:]
         [foo bar]
 
