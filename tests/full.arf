@@ -11,7 +11,8 @@ data wn helloText:String "Hello, world!"
 # this is a struct definition
 type rr Greeter:Obj
         # "Hi." is a string constant. all Greeters will be initialized with a
-        # pointer to it.
+        # pointer to it. I don't know really it depends on what I decide that
+        # a String type even is.
         wr text:String "Hi."
                 "sdfdsf" "ahh"
                 "asdf"
@@ -22,7 +23,7 @@ func rr main
         > argv:{String}
         < status:Int 0
         ---
-        [let greeter:Greeter]
+        [let greeter:Greeter:mut]
         [greeter.setText helloText]
         [greeter.greet]
 

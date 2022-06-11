@@ -8,9 +8,5 @@ func rr main
         > argv:{String}
         < status:Int
         ---
-        # set varName:{String} "hello"
-        # io.println {[varname] 5}
-
-        [test {argument *}]
-        [foo bar]
-
+        set varName:{String} "hello"
+        io.println {[varname] 5}

@@ -35,3 +35,23 @@ func rr main
 ```
 
 Isn't that neat? Its like a document.
+
+# Roadmap
+
+These are things that still need to be done:
+
+- [x] Lexer
+- [x] Parser
+- [x] AST (I think this is done)
+- [ ] Semantic analysis
+- [ ] Transpiling to C
+- [ ] Compile any file with options by passing command line arguments
+- [ ] Convert Arf module to Arf header file (so we can have shared libraries)
+- [ ] Convert C header file to Arf header file
+- [ ] Modular Arf standard library (written in arf)
+  - [ ] I/O
+  - [ ] String manipulation
+  - [ ] Memory management
+  - [ ] Option to use malloc as backend, for C library compatibility
+  - [ ] Networking
+  - [ ] Multithreading
