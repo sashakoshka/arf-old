@@ -38,7 +38,7 @@ Isn't that neat? Its like a document.
 
 # Roadmap
 
-These are things that still need to be done:
+These are things, in order, that have already been done or are planned:
 
 - [x] Lexer
 - [x] Parser
@@ -58,6 +58,7 @@ These are things that still need to be done:
 These aren't necessary for making Arf a full-fledged language, but they would
 make it actually useful:
 
+- [ ] Produce LLVM bytecode instead of C
 - [ ] Option to use C stdlib for memory allocation backend, for compatibility
       with libraries written in C
 - [ ] Rewrite some coreutils
