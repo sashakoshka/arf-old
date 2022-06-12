@@ -4,6 +4,7 @@ import (
         "os"
         "fmt"
         "github.com/sashakoshka/arf/parser"
+        "github.com/sashakoshka/arf/analyzer"
 )
 
 func main () {
@@ -11,11 +12,21 @@ func main () {
                 fmt.Println("specify module path")
                 os.Exit(1)
         }
+
+        var totalWarnings int
+        var totalErrors   int
         
-        module, nWarn, nError, err := parser.Parse(os.Args[1])
+        module, parserWarnings, parserErrors, err := parser.Parse(os.Args[1])
+        totalWarnings += parserWarnings
+        totalErrors   += parserErrors
         if err != nil { os.Exit(1) }
         module.Dump()
-        fmt.Println("(i)", nWarn, "warnings and", nError, "errors")
+
+        analyzerWarnings, analyzerErrors, err := analyzer.Analyze(module)
+        totalWarnings += analyzerWarnings
+        totalErrors   += analyzerErrors
+        
+        fmt.Println("(i)", totalWarnings, "warnings and", totalErrors, "errors")
         
         // lines, nWarn, nError, err := lexer.Tokenize("tests/extranum.arf", "extranum")
         // if err != nil { os.Exit(1) }
