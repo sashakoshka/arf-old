@@ -18,6 +18,7 @@ type TokenKind int
 const (
         TokenKindNone TokenKind = iota
         TokenKindSeparator
+        TokenKindDirection
         TokenKindPermission
 
         TokenKindInteger
@@ -229,6 +230,7 @@ func (line *Line) Dump () {
         for _, token := range line.Tokens {
                 switch token.Kind {
                 case TokenKindSeparator:     kind = "Separator";     break
+                case TokenKindDirection:     kind = "Direction";     break
                 case TokenKindPermission:    kind = "Permission";    break
                 case TokenKindInteger:       kind = "Integer";       break
                 case TokenKindSignedInteger: kind = "SignedInteger"; break
@@ -514,6 +516,8 @@ func (lexer *Lexer) tokenizeSymbol () {
 
         if token.StringValue == "---" {
                 token.Kind = TokenKindSeparator
+        } else if token.StringValue == "->" {
+                token.Kind = TokenKindDirection
         } else {
                 token.Kind = TokenKindSymbol
         }
@@ -645,6 +649,7 @@ func (tokenKind TokenKind) ToString () (description string) {
         switch tokenKind {
                 case TokenKindNone:          return "end of line";
                 case TokenKindSeparator:     return "separator";
+                case TokenKindDirection:     return "direction";
                 case TokenKindPermission:    return "permission";
                 case TokenKindInteger:       return "integer literal";
                 case TokenKindSignedInteger: return "signed integer literal";

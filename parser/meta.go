@@ -50,7 +50,7 @@ func (parser *Parser) parseMeta () (err error) {
                         )
                         break
                 default:
-                        parser.printWarning(0, "uknown metadata field")
+                        parser.printWarning(0, "uknown header directive")
                 }
 
                 // the rest of the line should be empty

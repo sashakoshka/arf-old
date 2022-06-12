@@ -295,6 +295,7 @@ func (parser *Parser) parseBodyFunctionCall (
         for !complete {
                 if !parser.expect (
                         lexer.TokenKindNone,
+                        lexer.TokenKindDirection,
                         lexer.TokenKindLBracket,
                         lexer.TokenKindRBracket,
                         lexer.TokenKindLBrace,
@@ -324,6 +325,9 @@ func (parser *Parser) parseBodyFunctionCall (
                         complete = true
                         parser.nextToken()
                         continue
+                } else if (parser.token.Kind == lexer.TokenKindDirection) {
+                        complete = true
+                        continue
                 }
 
                 argument, worked, err := parser.parseArgument (
@@ -334,6 +338,20 @@ func (parser *Parser) parseBodyFunctionCall (
                 statement.arguments = append (
                         statement.arguments,
                         argument)
+        }
+
+        // if we don't need to parse a return direction, stop
+        if (parser.token.Kind != lexer.TokenKindDirection) {
+                return statement, true, nil
+        }
+
+        // we need to parse a return direction
+        // TODO: get names and definitions until not match
+        parser.nextToken()
+        for parser.expect(lexer.TokenKindName) {
+                name := parser.token.StringValue
+                parser.nextToken()
+                if (parser.token.Kind != lexer.TokenKindColon) { continue }
         }
         
         return statement, true, nil
