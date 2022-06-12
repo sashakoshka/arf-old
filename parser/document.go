@@ -72,7 +72,6 @@ const (
         ArgumentKindNone ArgumentKind = iota
         ArgumentKindStatement
         ArgumentKindIdentifier
-        ArgumentKindDefinition
         ArgumentKindDereference
         ArgumentKindString
         ArgumentKindRune

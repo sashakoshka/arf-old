@@ -181,10 +181,11 @@ func (parser *Parser) parseBodyFunctionBlock (
                         break
                         
                 } else if parser.line.Indent == parentIndent + 1 {
-                        // call
+                        // we are parsing a statement
                         var statement *Statement
                         var worked bool
-                        statement, worked, err = parser.parseBodyFunctionCall (
+                        statement,
+                        worked, err = parser.parseBodyFunctionStatement (
                                 parentIndent + 1,
                                 block)
                         if err != nil || !worked { return }
@@ -201,7 +202,7 @@ func (parser *Parser) parseBodyFunctionBlock (
                         }
                         
                 } else if parser.line.Indent == parentIndent + 2 {
-                        // block
+                        // we are parsing a block
                         var childBlock *Block
                         childBlock, err = parser.parseBodyFunctionBlock (
                                 parentIndent + 1)
@@ -223,10 +224,10 @@ func (parser *Parser) parseBodyFunctionBlock (
         return
 }
 
-/* parseBodyFunctionCall parses a function call of a function body. This is done
- * recursively, and it may eat up more lines than one.
+/* parseBodyFunctionStatement parses a statement in a function body. This is
+ * done recursively, and it may eat up more lines than one.
  */
-func (parser *Parser) parseBodyFunctionCall (
+func (parser *Parser) parseBodyFunctionStatement (
         parentIndent int,
         // specifically for defining variables in
         parent *Block,
@@ -245,7 +246,7 @@ func (parser *Parser) parseBodyFunctionCall (
         if !match {
                 // we have no idea what the users intent with that was, so try
                 // to move on to the next statement.
-                parser.skipBodyFunctionCall(parentIndent, false)
+                parser.skipBodyFunctionStatement(parentIndent, false)
                 return nil, false, nil
         }
 
@@ -261,7 +262,7 @@ func (parser *Parser) parseBodyFunctionCall (
                         lexer.TokenKindString,
                         lexer.TokenKindSymbol)
                 if !match {
-                        err = parser.skipBodyFunctionCall (
+                        err = parser.skipBodyFunctionStatement (
                                 parentIndent, bracketed)
                         return nil, false, err
                 }
@@ -283,7 +284,7 @@ func (parser *Parser) parseBodyFunctionCall (
                 trail, worked, err := parser.parseIdentifier()
                         if err != nil { return nil, false, err }
                 if !worked {
-                        parser.skipBodyFunctionCall(parentIndent, bracketed)
+                        parser.skipBodyFunctionStatement(parentIndent, bracketed)
                         return nil, false, nil
                 }
 
@@ -306,7 +307,7 @@ func (parser *Parser) parseBodyFunctionCall (
                         lexer.TokenKindSignedInteger,
                         lexer.TokenKindFloat,
                 ) {
-                        err = parser.skipBodyFunctionCall (
+                        err = parser.skipBodyFunctionStatement (
                                 parentIndent, bracketed)
                         return nil, false, err
                 }
@@ -330,7 +331,8 @@ func (parser *Parser) parseBodyFunctionCall (
                         continue
                 }
 
-                argument, worked, err := parser.parseArgument (
+                argument,
+                worked, err := parser.parseBodyFunctionStatementArgument (
                         parentIndent, parent)
                 if err != nil { return nil, false, err }
                 if !worked { continue }
@@ -356,7 +358,8 @@ func (parser *Parser) parseBodyFunctionCall (
                 if parser.token.Kind != lexer.TokenKindName { break }
                 
                 identifier,
-                worked, err := parser.parseIdentifierOrDefinition(parent)
+                worked,
+                err := parser.parseBodyFunctionIdentifierOrDeclaration(parent)
                 if err != nil || !worked { return statement, false, err }
 
                 println(identifier.ToString())
@@ -365,7 +368,7 @@ func (parser *Parser) parseBodyFunctionCall (
         return statement, true, nil
 }
 
-func (parser *Parser) parseArgument (
+func (parser *Parser) parseBodyFunctionStatementArgument (
         parentIndent int,
         parent *Block,
 ) (
@@ -377,7 +380,7 @@ func (parser *Parser) parseArgument (
         case lexer.TokenKindLBracket:
                 childStatement,
                 worked,
-                err := parser.parseBodyFunctionCall (parentIndent, parent)
+                err := parser.parseBodyFunctionStatement (parentIndent, parent)
                 if err != nil { return argument, false, err }
                 if !worked {
                         parser.nextToken()
@@ -399,7 +402,8 @@ func (parser *Parser) parseArgument (
                                 
         case lexer.TokenKindName:
                 identifier,
-                worked, err := parser.parseIdentifierOrDefinition(parent)
+                worked,
+                err := parser.parseBodyFunctionIdentifierOrDeclaration(parent)
                 if err != nil || !worked { return argument, false, err }
 
                 argument.kind = ArgumentKindIdentifier
@@ -440,11 +444,12 @@ func (parser *Parser) parseArgument (
         return argument, true, nil
 }
 
-/* parseIdentifierOrDefinition parses what may be either an identifier or a
- * definition. It returns the pointer to what was parsed, and returns nil for
- * the other.
+/* parseBodyFunctionIdentifierOrDeclaration parses what may be either an
+ * identifier or a variable declaration. It returns the identifier of what it
+ * parsed, and if a variable was declared, it adds it to the parent block's data
+ * section.
  */
-func (parser *Parser) parseIdentifierOrDefinition (
+func (parser *Parser) parseBodyFunctionIdentifierOrDeclaration (
         parent *Block,
 ) (
         identifier *Identifier,
@@ -529,14 +534,14 @@ func (parser *Parser) parseDereference (
                 lexer.TokenKindString,
                 lexer.TokenKindInteger,
         ) {
-                parser.skipDereference()
+                parser.skipBodyFunctionDereference()
                 return dereference, false, nil
         }
         
-        argument, worked, err := parser.parseArgument (
+        argument, worked, err := parser.parseBodyFunctionStatementArgument (
                 parentIndent, parent)
         if err != nil || !worked {
-                parser.skipDereference()
+                parser.skipBodyFunctionDereference()
                 return dereference, false, err
         }
 
@@ -546,7 +551,7 @@ func (parser *Parser) parseDereference (
                 lexer.TokenKindRBrace,
                 lexer.TokenKindInteger,
         ) {
-                parser.skipDereference()
+                parser.skipBodyFunctionDereference()
                 return dereference, false, nil
         }
         
@@ -555,7 +560,7 @@ func (parser *Parser) parseDereference (
                 dereference.offset = parser.token.Value.(uint64)
                 parser.nextToken()
                 if !parser.expect(lexer.TokenKindRBrace) {
-                        parser.skipDereference()
+                        parser.skipBodyFunctionDereference()
                         return dereference, false, nil
                 }
         }
@@ -565,10 +570,10 @@ func (parser *Parser) parseDereference (
         return dereference, true, nil
 }
 
-/* skipBodyFunctionCall skips to the end of the current statement, or
+/* skipBodyFunctionStatement skips to the end of the current statement, or
  * indentation drop.
  */
-func (parser *Parser) skipBodyFunctionCall (
+func (parser *Parser) skipBodyFunctionStatement (
         parentIndent int,
         bracketed bool,
 ) (
@@ -599,9 +604,9 @@ func (parser *Parser) skipBodyFunctionCall (
         return
 }
 
-/* skipDereference skips to the end of the current dereference.
+/* skipBodyFunctionDereference skips to the end of the current dereference.
  */
-func (parser *Parser) skipDereference () (err error) {
+func (parser *Parser) skipBodyFunctionDereference () (err error) {
         depth := 1
         
         for {
