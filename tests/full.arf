@@ -23,20 +23,20 @@ func rr main
         > argv:{String}
         < status:Int 0
         ---
-        [let greeter:Greeter:mut]
-        [greeter.setText helloText]
-        [greeter.greet]
+        let greeter:Greeter:mut
+        greeter.setText helloText
+        greeter.greet
 
 # this is a member function
 func rr greet
         @ greeter:{Greeter}
         ---
-        [io.println greeter.text]
+        io.println greeter.text
 
 # this is mutator member function
 func rr setText
         @ greeter:{Greeter}
         > text:String
         ---
-        [= greeter.text text]
+        greeter.text.set text
 

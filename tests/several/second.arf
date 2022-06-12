@@ -6,7 +6,7 @@ require "io"
 func rr main
         < status:Int
         ---
-        [io.println "Hello world!"]
-        [io.println 'a']
-        [= status 0b101]
+        io.println "Hello world!"
+        io.println 'a'
+        set status 0b101
 

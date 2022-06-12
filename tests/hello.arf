@@ -9,4 +9,4 @@ func rr main
         > argv:{String}
         < status:Int
         ---
-        [io.println "Hello, world!"]
+        io.println "Hello, world!"

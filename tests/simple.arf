@@ -8,7 +8,7 @@ func rr main
         > argv:{String}
         < status:Int
         ---
-        [what [someFunc asdf] -> var:String otherVar:Int [ooooo bals]]
+        someFunc -> var:String otherVar:Int
 
         # when translated to C:
         # struct String var = { 0 }, Int otherVar = { 0 };

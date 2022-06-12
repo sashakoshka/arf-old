@@ -7,7 +7,12 @@ import (
 )
 
 func main () {
-        module, nWarn, nError, err := parser.Parse("tests/simple")
+        if (len(os.Args) < 2) {
+                fmt.Println("specify module path")
+                os.Exit(1)
+        }
+        
+        module, nWarn, nError, err := parser.Parse(os.Args[1])
         if err != nil { os.Exit(1) }
         module.Dump()
         fmt.Println("(i)", nWarn, "warnings and", nError, "errors")

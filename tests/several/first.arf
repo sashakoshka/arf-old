@@ -3,4 +3,4 @@
 module several
 ---
 
-data wn variable 5
+data wn variable:Int 5
