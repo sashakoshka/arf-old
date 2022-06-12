@@ -36,11 +36,6 @@ type Identifier struct {
         trail []string
 }
 
-type Definition struct {
-        name Identifier
-        what Type
-}
-
 type Type struct {
         name    Identifier
         points  *Type
@@ -90,9 +85,8 @@ type Argument struct {
         kind ArgumentKind
         
         statementValue     *Statement
-        identifierValue    Identifier
-        definitionValue    Definition
-        dereferenceValue   Dereference
+        identifierValue    *Identifier
+        dereferenceValue   *Dereference
         stringValue        string
         runeValue          rune
         integerValue       uint64

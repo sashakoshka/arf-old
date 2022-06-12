@@ -185,9 +185,6 @@ func (argument *Argument) Dump (indent int) {
         case ArgumentKindIdentifier:
                 fmt.Print(argument.identifierValue.ToString())
                 break
-        case ArgumentKindDefinition:
-                fmt.Print(argument.definitionValue.ToString())
-                break
         case ArgumentKindInteger:
                 fmt.Print(argument.integerValue)
                 break
@@ -233,12 +230,6 @@ func (identifier *Identifier) ToString () (description string) {
                 description += "." + item
         }
 
-        return
-}
-
-func (definition *Definition) ToString () (description string) {
-        description += definition.name.ToString() + ":"
-        description += definition.what.ToString()
         return
 }
 

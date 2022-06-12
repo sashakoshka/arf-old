@@ -394,7 +394,7 @@ func (parser *Parser) parseArgument (
                 if err != nil || !worked { return argument, false, err }
 
                 argument.kind = ArgumentKindDereference
-                argument.dereferenceValue = dereference
+                argument.dereferenceValue = &dereference
                 break
                                 
         case lexer.TokenKindName:
@@ -403,7 +403,7 @@ func (parser *Parser) parseArgument (
                 if err != nil || !worked { return argument, false, err }
 
                 argument.kind = ArgumentKindIdentifier
-                argument.identifierValue = *identifier
+                argument.identifierValue = identifier
                 break
                 
         case lexer.TokenKindString:
