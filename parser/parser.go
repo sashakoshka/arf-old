@@ -7,9 +7,9 @@ import (
         "bufio"
         "errors"
         "strings"
-        "strconv"
         "io/ioutil"
         "github.com/sashakoshka/arf/lexer"
+        "github.com/sashakoshka/arf/lineFile"
         "github.com/sashakoshka/arf/validate"
 )
 
@@ -27,7 +27,7 @@ var (
  */
 type Parser struct {
         directory  string
-        fileName   string
+        file       *lineFile.LineFile
 
         lines      []*lexer.Line
         lineIndex  int
@@ -111,10 +111,14 @@ func Parse (
  */
 func (parser *Parser) parseFile (filePath string) (err error) {
         // open file safely
-        parser.fileName = filePath
+        parser.file, err = lineFile.Open(filePath, parser.module.name)
+        if err != nil {
+                parser.printFatal(err)
+                return
+        }
         
         lines, nWarn, nError, err := lexer.Tokenize (
-                filePath,
+                parser.file,
                 parser.module.name)
 
         if err != nil { return err }
@@ -234,10 +238,10 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
 
         if parser.endOfFile() {
                 errText += "end of file"
-                errColumn = len(parser.lines[len(parser.lines) - 1].Runes)
+                errColumn = parser.lines[len(parser.lines) - 1].GetLength()
         } else if parser.endOfLine() {
                 errText += "end of line"
-                errColumn = len(parser.line.Runes)
+                errColumn = parser.line.GetLength()
         } else {
                 errText += currentKind.ToString() + " token"
         }
@@ -278,38 +282,7 @@ func (parser *Parser) endOfLine () (eol bool) {
         return parser.tokenIndex >= len(parser.line.Tokens)
 }
 
-func (parser *Parser) printWarning (column int, cause ...interface {}) {
-        parser.warnCount ++
-        parser.printMistake("\033[33m!!!\033[0m", column, cause...)
-}
-
-func (parser *Parser) printError (column int, cause ...interface {}) {
-        parser.errorCount ++
-        parser.printMistake("\033[31mERR\033[0m", column, cause...)
-}
-
-func (parser *Parser) printFatal (err error) {
-        parser.errorCount ++
-        fmt.Println ("\033[31mXXX\033[0m", "\033[90min\033[0m", parser.fileName,
-                "\033[90mof\033[0m", parser.module.name)
-        fmt.Println("   ", "could not parse module -", err)
-}
-
-func (parser *Parser) printGeneralFatal (err error) {
-        parser.printGeneralMistake("\033[31mXXX\033[0m", err)
-}
-
-func (parser *Parser) printGeneralMistake (kind string, err error) {
-        parser.errorCount ++
-        fmt.Println (kind, "\033[90min\033[0m", parser.module.name)
-        fmt.Println("   ", err)
-}
-
-func (parser *Parser) printMistake (
-        kind string,
-        column int,
-        cause ...interface{},
-) {
+func (parser *Parser) getCurrentRealRow () (row int) {
         var line *lexer.Line
 
         if parser.endOfFile() {
@@ -317,23 +290,30 @@ func (parser *Parser) printMistake (
         } else {
                 line = parser.line
         }
-        
-        actColumn := line.Indent * 8 + 1
-        
-        fmt.Println (
-                kind, "\033[90min\033[0m", parser.fileName,
-                "\033[34m" + strconv.Itoa(line.Row) + ":" +
-                strconv.Itoa(actColumn),
-                "\033[90mof\033[0m", parser.module.name)
-        fmt.Println("   ", line.Value)
 
-        fmt.Print("    ")
-        for column > 0 {
-                fmt.Print("-")
-                column --
-        }
-        fmt.Println("^")
-        
-        fmt.Print("    ")
-        fmt.Println(cause...)
+        return line.Row
+}
+
+func (parser *Parser) printWarning (column int, cause ...interface {}) {
+        parser.warnCount ++
+        parser.file.PrintWarning(column, parser.getCurrentRealRow(), cause...)
+}
+
+func (parser *Parser) printError (column int, cause ...interface {}) {
+        parser.errorCount ++
+        parser.file.PrintError(column, parser.getCurrentRealRow(), cause...)
+}
+
+func (parser *Parser) printFatal (err error) {
+        parser.errorCount ++
+        parser.file.PrintFatal(err)
+}
+
+func (parser *Parser) printGeneralFatal (err error) {
+        parser.errorCount ++
+        fmt.Println (
+                "\033[31mXXX\033[0m",
+                "\033[90min\033[0m",
+                parser.module.name)
+        fmt.Println("   ", err)
 }

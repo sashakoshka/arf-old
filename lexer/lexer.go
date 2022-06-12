@@ -54,10 +54,7 @@ type Lexer struct {
 /* Line represents a line of a file. Its primary purpose is to store tokens.
  */
 type Line struct {
-        // Value contains the original text of the line as a string. This
-        // information is stored for error reporting purposes.
-        Value  string
-        Runes  []rune
+        runes []rune
 
         // Row is theposition of the line in the file. Again, this is for error
         // reporting.
@@ -79,7 +76,7 @@ type Token struct {
 }
 
 func Tokenize (
-        filePath   string,
+        file       *lineFile.LineFile,
         moduleName string,
 ) (
         lines []*Line,
@@ -87,14 +84,7 @@ func Tokenize (
         errorCount int,
         err        error,
 ) {
-        lexer := &Lexer { }
-
-        // open file safely
-        lexer.file, err = lineFile.Open(filePath, moduleName)
-        if err != nil {
-                lexer.printFatal(err)
-                return nil, 0, 0, err
-        }
+        lexer := &Lexer { file: file }
 
         done := false
         for {
@@ -102,6 +92,7 @@ func Tokenize (
                 if done || err != nil { break }
         }
 
+        // TODO: set all runes in lines to nil to free memory
         return lexer.lines, lexer.warnCount, lexer.errorCount, err
 }
 
@@ -115,7 +106,7 @@ func (lexer *Lexer) tokenizeLine () (done bool, err error) {
 
         line := lexer.line
 
-        if line.Indent == 0 && line.Value == ":arf" {
+        if line.Indent == 0 && strings.TrimSpace(string(line.runes)) == ":arf" {
                 // magic bytes. ignore it
                 return false, nil
         }
@@ -183,7 +174,7 @@ func (lexer *Lexer) tokenizeLine () (done bool, err error) {
 
 func (line *Line) ch () (ch rune) {
         if !line.notEnd() { return '\000' }
-        return line.Runes[line.column]
+        return line.runes[line.column]
 }
 
 func (line *Line) nextRune () {
@@ -191,7 +182,7 @@ func (line *Line) nextRune () {
 }
 
 func (line *Line) notEnd () (keepGoing bool) {
-        return line.column < len(line.Runes)
+        return line.column < len(line.runes)
 }
 
 func (line *Line) add (
@@ -209,6 +200,10 @@ func (line *Line) add (
 
 func (line *Line) addExisting (token *Token) {
         line.Tokens = append (line.Tokens, token)
+}
+
+func (line *Line) GetLength () (length int) {
+        return len(line.runes)
 }
 
 func (line *Line) Dump () {
@@ -564,21 +559,19 @@ func (lexer *Lexer) nextLine () (done bool, ignore bool, err error) {
         ignore = false
 
         line := &Line {
-                // TODO: remove value, have everything grab from the file struct
-                Value: lexer.file.GetLine(lexer.lineNumber),
-                Row:   lexer.lineNumber,
+                Row: lexer.lineNumber,
         }
         
         lexer.line = line
 
-        for i, ch := range line.Value {
+        lineValue := lexer.file.GetLine(lexer.lineNumber)
+        for i, ch := range lineValue {
                 line.Indent = i
                 if ch == '#' { return false, true, nil }
                 if ch != ' ' { break }
         }
 
-        line.Value = strings.TrimSpace(line.Value)
-        line.Runes = []rune(line.Value)
+        line.runes = []rune(strings.TrimSpace(lineValue))
 
         if line.Indent % 8 != 0 {
                 line.Indent /= 8

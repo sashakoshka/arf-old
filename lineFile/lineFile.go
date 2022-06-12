@@ -74,10 +74,10 @@ func (lineFile *LineFile) printMistake (
 ) {
         fmt.Println (
                 kind, "\033[90min\033[0m", lineFile.path,
-                "\033[34m" + strconv.Itoa(row) + ":" +
-                strconv.Itoa(column),
+                "\033[34m" + strconv.Itoa(row + 1) + ":" +
+                strconv.Itoa(column + 1),
                 "\033[90mof\033[0m", lineFile.module)
-        fmt.Println("   ", strings.TrimLeft(lineFile.lines[row], " "))
+        fmt.Println("   ", strings.TrimSpace(lineFile.lines[row]))
 
         fmt.Print("    ")
         for column > 0 {

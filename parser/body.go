@@ -41,7 +41,7 @@ func (parser *Parser) parseBody () (err error) {
                         break
                 default:
                         parser.printError (
-                                0, "unknown section type \"" +
+                                0, "unknown section kind \"" +
                                 parser.token.StringValue + "\"")
                         err = parser.skipBodySection()
                         if err != nil { return err }
