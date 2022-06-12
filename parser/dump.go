@@ -157,6 +157,13 @@ func (statement *Statement) Dump (indent int) {
                 argument.Dump(indent)
         }
         fmt.Print("]")
+
+        if statement.returnsTo != nil {
+                fmt.Print(" ->")
+                for _, identifier := range statement.returnsTo {
+                        fmt.Print(" ", identifier.ToString())
+                }
+        }
 }
 
 func (dereference *Dereference) Dump (indent int) {

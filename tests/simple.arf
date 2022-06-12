@@ -9,7 +9,8 @@ func rr main
         < status:Int
         ---
         [what [someFunc asdf] -> var:String otherVar:Int [ooooo bals]]
-        
+
         # when translated to C:
         # struct String var = { 0 }, Int otherVar = { 0 };
         # someFunc(&var, &otherVar);
+

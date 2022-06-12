@@ -1,7 +1,6 @@
 package parser
 
 import (
-        "fmt"
         "github.com/sashakoshka/arf/lexer"
 )
 
@@ -216,7 +215,6 @@ func (parser *Parser) parseBodyFunctionBlock (
                         })
                         
                 } else {
-                        fmt.Println(parentIndent, parser.line.Indent)
                         parser.printError(0, errTooMuchIndent)
                         
                 }
@@ -365,7 +363,7 @@ func (parser *Parser) parseBodyFunctionStatement (
                 err := parser.parseBodyFunctionIdentifierOrDeclaration(parent)
                 if err != nil || !worked { return statement, false, err }
 
-                println(identifier.ToString())
+                statement.returnsTo = append(statement.returnsTo, identifier)
         }
         
         return statement, true, nil

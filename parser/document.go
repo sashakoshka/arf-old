@@ -53,6 +53,8 @@ type Statement struct {
 
         external        bool
         externalCommand string
+
+        returnsTo []*Identifier
 }
 
 type Dereference struct {
