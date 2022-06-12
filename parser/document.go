@@ -16,7 +16,6 @@ type Module struct {
 }
 
 type Function struct {
-        isMember bool
         self     *Data        
         name     string
         inputs   map[string] *Data

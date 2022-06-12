@@ -94,8 +94,6 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                                 "mutable")
                         break
                 }
-                
-                section.isMember = true
                 break
 
         case ">":

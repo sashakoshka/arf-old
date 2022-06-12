@@ -90,7 +90,7 @@ func (function *Function) Dump () {
 
         fmt.Println("", function.name)
 
-        if function.isMember {
+        if function.self != nil {
                 fmt.Println (
                         "        @",
                         function.self.name + ":" +
