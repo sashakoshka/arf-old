@@ -9,15 +9,15 @@ type Analyzer struct {
 }
 
 func Analyze (
-        module parser.Module,
+        module *parser.Module,
 ) (
         warnCount int,
         errorCount int,
         err error,
 ) {
-        analyzer := Analyzer {
-                
-        }
+        // analyzer := Analyzer {
+                // 
+        // }
 
         return
 }

@@ -1,13 +1,12 @@
 package lexer
 
 import (
-        "os"
         "fmt"
         "math"
-        "bufio"
         "errors"
         "strings"
         "strconv"
+        "github.com/sashakoshka/arf/lineFile"
         "github.com/sashakoshka/arf/validate"
 )
 
@@ -43,14 +42,10 @@ const (
  * used within Tokenize().
  */
 type Lexer struct {
+        file       *lineFile.LineFile
         lines      []*Line
         lineNumber int
         line       *Line
-        
-        file       *os.File
-        scanner    *bufio.Scanner
-        fileName   string
-        moduleName string
 
         warnCount  int
         errorCount int
@@ -92,20 +87,14 @@ func Tokenize (
         errorCount int,
         err        error,
 ) {
-        lexer := &Lexer {
-                fileName:   filePath,
-                moduleName: moduleName,
-        }
+        lexer := &Lexer { }
 
         // open file safely
-        file, err := os.Open(filePath)
-        defer file.Close()
+        lexer.file, err = lineFile.Open(filePath, moduleName)
         if err != nil {
                 lexer.printFatal(err)
                 return nil, 0, 0, err
         }
-        lexer.file = file
-        lexer.scanner = bufio.NewScanner(file)
 
         done := false
         for {
@@ -571,12 +560,12 @@ func (lexer *Lexer) skipWhitespace () {
 func (lexer *Lexer) nextLine () (done bool, ignore bool, err error) {
         lexer.lineNumber ++
         
-        done   = !lexer.scanner.Scan()
-        err    = lexer.scanner.Err()
+        done = lexer.lineNumber >= lexer.file.GetLength() - 1
         ignore = false
 
         line := &Line {
-                Value: lexer.scanner.Text(),
+                // TODO: remove value, have everything grab from the file struct
+                Value: lexer.file.GetLine(lexer.lineNumber),
                 Row:   lexer.lineNumber,
         }
         
@@ -605,44 +594,17 @@ func (lexer *Lexer) nextLine () (done bool, ignore bool, err error) {
 
 func (lexer *Lexer) printWarning (column int, cause ...interface {}) {
         lexer.warnCount ++
-        lexer.printMistake("\033[33m!!!\033[0m", column, cause...)
+        lexer.file.PrintWarning(column, lexer.lineNumber, cause...)
 }
 
 func (lexer *Lexer) printError (column int, cause ...interface {}) {
         lexer.errorCount ++
-        lexer.printMistake("\033[31mERR\033[0m", column, cause...)
+        lexer.file.PrintError(column, lexer.lineNumber, cause...)
 }
 
 func (lexer *Lexer) printFatal (err error) {
         lexer.errorCount ++
-        fmt.Println ("\033[31mXXX\033[0m", "\033[90min\033[0m", lexer.fileName,
-                "\033[90mof\033[0m", lexer.moduleName)
-        fmt.Println("   ", "could not tokenize module -", err)
-}
-
-func (lexer *Lexer) printMistake (
-        kind string,
-        column int,
-        cause ...interface{},
-) {
-        actColumn := column + lexer.line.Indent * 8
-        
-        fmt.Println (
-                kind, "\033[90min\033[0m", lexer.fileName,
-                "\033[34m" + strconv.Itoa(lexer.line.Row) + ":" +
-                strconv.Itoa(actColumn),
-                "\033[90mof\033[0m", lexer.moduleName)
-        fmt.Println("   ", lexer.line.Value)
-
-        fmt.Print("    ")
-        for column > 0 {
-                fmt.Print("-")
-                column --
-        }
-        fmt.Println("^")
-        
-        fmt.Print("    ")
-        fmt.Println(cause...)
+        lexer.file.PrintFatal("could not tokenize module -", err)
 }
 
 func (tokenKind TokenKind) ToString () (description string) {
