@@ -356,15 +356,10 @@ func (parser *Parser) parseBodyFunctionCall (
                 if parser.token.Kind != lexer.TokenKindName { break }
                 
                 identifier,
-                definition,
-                worked, err := parser.parseIdentifierOrDefinition()
+                worked, err := parser.parseIdentifierOrDefinition(parent)
                 if err != nil || !worked { return statement, false, err }
 
-                if (definition == nil) {
-                        println(identifier.ToString())
-                } else {
-                        println(definition.ToString())
-                }
+                println(identifier.ToString())
         }
         
         return statement, true, nil
@@ -404,18 +399,11 @@ func (parser *Parser) parseArgument (
                                 
         case lexer.TokenKindName:
                 identifier,
-                definition,
-                worked, err := parser.parseIdentifierOrDefinition()
+                worked, err := parser.parseIdentifierOrDefinition(parent)
                 if err != nil || !worked { return argument, false, err }
 
-                // TODO: make argument carry pointers
-                if (definition == nil) {
-                        argument.kind = ArgumentKindIdentifier
-                        argument.identifierValue = *identifier
-                } else {
-                        argument.kind = ArgumentKindDefinition
-                        argument.definitionValue = *definition
-                }
+                argument.kind = ArgumentKindIdentifier
+                argument.identifierValue = *identifier
                 break
                 
         case lexer.TokenKindString:
@@ -456,45 +444,61 @@ func (parser *Parser) parseArgument (
  * definition. It returns the pointer to what was parsed, and returns nil for
  * the other.
  */
-func (parser *Parser) parseIdentifierOrDefinition () (
+func (parser *Parser) parseIdentifierOrDefinition (
+        parent *Block,
+) (
         identifier *Identifier,
-        definition *Definition,
         worked bool,
         err error,
 ) {
         trail, worked, err := parser.parseIdentifier()
-        if err != nil { return nil, nil, false, err }
+        if err != nil { return nil, false, err }
         if !worked {
                 parser.nextToken()
-                return nil, nil, false, nil
+                return nil, false, nil
         }
 
+        identifier = &Identifier {trail}
         if (parser.token.Kind != lexer.TokenKindColon) {
-                return &Identifier {trail}, nil, true, nil
+                return identifier, true, nil
         }
 
         if len(trail) != 1 {
                 parser.printError (
                         parser.token.Column,
-                        "cannot use member selection in definition, name " +
+                        "cannot use member selection in definition, name ",
                         "cannot have dots in it")
-                return nil, nil, false, nil
+                return nil, false, nil
         }
 
         parser.nextToken()
         if !parser.expect (
                 lexer.TokenKindLBrace,
                 lexer.TokenKindName,
-        ) { return nil, nil, false, nil }
+        ) { return nil, false, nil }
 
         what, worked, err := parser.parseType()
-        if err != nil || !worked { return nil, nil, false, err }
+        if err != nil || !worked { return nil, false, err }
 
-        definition = &Definition {
-                name: Identifier {trail},
-                what: what,
+        // TODO: check all scopes above this
+        name := trail[0]
+        _, exists := parent.datas[name]
+        if exists {
+                parser.printError (
+                        parser.token.Column,
+                        "a variable with the name", name, "was defined",
+                        "previously")
+                return nil, false, err
         }
-        return nil, definition, true, nil
+        
+        parent.datas[name] = &Data {
+                name: name,
+                what: what,
+
+                modeInternal: ModeWrite,
+                modeExternal: ModeDeny,
+        }
+        return identifier, true, nil
 }
 
 /* parseDereference parses a dereference of a value of the form {value N} where

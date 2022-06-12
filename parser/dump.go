@@ -129,6 +129,11 @@ func (function *Function) Dump () {
 }
 
 func (block *Block) Dump (indent int) {
+        for _, data := range block.datas {
+                printIndent(indent)
+                fmt.Println("let", data.name + ":" + data.what.ToString())
+        }
+
         for _, item := range block.items {
                 if item.block != nil {
                         item.block.Dump(indent + 1)
