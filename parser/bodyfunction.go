@@ -346,14 +346,25 @@ func (parser *Parser) parseBodyFunctionCall (
         }
 
         // we need to parse a return direction
-        // TODO: get names and definitions until not match
         parser.nextToken()
-        for parser.expect(lexer.TokenKindName, lexer.TokenKindNone) {
-                if (parser.endOfLine()) { break }
-        
-                if (parser.token.Kind != lexer.TokenKindColon) { continue }
+        for parser.expect (
+                lexer.TokenKindName,
+                lexer.TokenKindNone,
+                lexer.TokenKindLBracket,
+                lexer.TokenKindString,
+        ) {
+                if parser.token.Kind != lexer.TokenKindName { break }
                 
-                
+                identifier,
+                definition,
+                worked, err := parser.parseIdentifierOrDefinition()
+                if err != nil || !worked { return statement, false, err }
+
+                if (definition == nil) {
+                        println(identifier.ToString())
+                } else {
+                        println(definition.ToString())
+                }
         }
         
         return statement, true, nil
@@ -451,7 +462,6 @@ func (parser *Parser) parseIdentifierOrDefinition () (
         worked bool,
         err error,
 ) {
-        println("sadas")
         trail, worked, err := parser.parseIdentifier()
         if err != nil { return nil, nil, false, err }
         if !worked {
