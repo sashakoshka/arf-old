@@ -348,10 +348,12 @@ func (parser *Parser) parseBodyFunctionCall (
         // we need to parse a return direction
         // TODO: get names and definitions until not match
         parser.nextToken()
-        for parser.expect(lexer.TokenKindName) {
-                name := parser.token.StringValue
-                parser.nextToken()
+        for parser.expect(lexer.TokenKindName, lexer.TokenKindNone) {
+                if (parser.endOfLine()) { break }
+        
                 if (parser.token.Kind != lexer.TokenKindColon) { continue }
+                
+                
         }
         
         return statement, true, nil
@@ -390,47 +392,19 @@ func (parser *Parser) parseArgument (
                 break
                                 
         case lexer.TokenKindName:
-                trail, worked, err := parser.parseIdentifier()
-                if err != nil { return argument, false, err }
-                if !worked {
-                        parser.nextToken()
-                        return argument, false, nil
-                }
-
-                argument.kind  = ArgumentKindIdentifier
-                argument.identifierValue = Identifier {
-                        trail: trail,
-                }
-
-                // if there is no colon after this, this is not a
-                // definition and we don't need to do anything else...
-                if (parser.token.Kind != lexer.TokenKindColon) { break }
-                // ... but if there is:
-
-                if len(argument.identifierValue.trail) != 1 {
-                        parser.printError (
-                                parser.token.Column,
-                                "cannot use member selection in " +
-                                "definition, name cannot have dots " +
-                                "in it")
-                        return argument, false, nil
-                }
-
-                parser.nextToken()
-                if !parser.expect (
-                        lexer.TokenKindLBrace,
-                        lexer.TokenKindName,
-                ) { return argument, false, nil }
-
-                argument.kind = ArgumentKindDefinition
-                argument.definitionValue = Definition {
-                        name: argument.identifierValue,
-                }
-
-                what, worked, err := parser.parseType()
+                identifier,
+                definition,
+                worked, err := parser.parseIdentifierOrDefinition()
                 if err != nil || !worked { return argument, false, err }
-                
-                argument.definitionValue.what = what
+
+                // TODO: make argument carry pointers
+                if (definition == nil) {
+                        argument.kind = ArgumentKindIdentifier
+                        argument.identifierValue = *identifier
+                } else {
+                        argument.kind = ArgumentKindDefinition
+                        argument.definitionValue = *definition
+                }
                 break
                 
         case lexer.TokenKindString:
@@ -465,6 +439,52 @@ func (parser *Parser) parseArgument (
         }
 
         return argument, true, nil
+}
+
+/* parseIdentifierOrDefinition parses what may be either an identifier or a
+ * definition. It returns the pointer to what was parsed, and returns nil for
+ * the other.
+ */
+func (parser *Parser) parseIdentifierOrDefinition () (
+        identifier *Identifier,
+        definition *Definition,
+        worked bool,
+        err error,
+) {
+        println("sadas")
+        trail, worked, err := parser.parseIdentifier()
+        if err != nil { return nil, nil, false, err }
+        if !worked {
+                parser.nextToken()
+                return nil, nil, false, nil
+        }
+
+        if (parser.token.Kind != lexer.TokenKindColon) {
+                return &Identifier {trail}, nil, true, nil
+        }
+
+        if len(trail) != 1 {
+                parser.printError (
+                        parser.token.Column,
+                        "cannot use member selection in definition, name " +
+                        "cannot have dots in it")
+                return nil, nil, false, nil
+        }
+
+        parser.nextToken()
+        if !parser.expect (
+                lexer.TokenKindLBrace,
+                lexer.TokenKindName,
+        ) { return nil, nil, false, nil }
+
+        what, worked, err := parser.parseType()
+        if err != nil || !worked { return nil, nil, false, err }
+
+        definition = &Definition {
+                name: Identifier {trail},
+                what: what,
+        }
+        return nil, definition, true, nil
 }
 
 /* parseDereference parses a dereference of a value of the form {value N} where
