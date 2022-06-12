@@ -69,6 +69,11 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
 ) {
         switch parser.token.StringValue {
         case "@":
+                // these modes are mainly being set for semantic value
+                section.self = &Data {
+                        modeInternal: ModeRead,
+                        modeExternal: ModeDeny,
+                }
                 section.self.name,
                 section.self.what,
                 _, err =  parser.parseDeclaration()
@@ -471,7 +476,7 @@ func (parser *Parser) parseBodyFunctionIdentifierOrDeclaration (
         if len(trail) != 1 {
                 parser.printError (
                         parser.token.Column,
-                        "cannot use member selection in definition, name ",
+                        "cannot use member selection in declaration, name ",
                         "cannot have dots in it")
                 return nil, false, nil
         }

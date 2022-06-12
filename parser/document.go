@@ -17,12 +17,7 @@ type Module struct {
 
 type Function struct {
         isMember bool
-        // TODO: convert to data
-        self struct {
-                name string
-                what Type
-        }
-        
+        self     *Data        
         name     string
         inputs   map[string] *Data
         outputs  map[string] *Data

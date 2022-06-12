@@ -9,7 +9,6 @@ func rr main
         < status:Int
         ---
         [what [someFunc asdf] -> var:String otherVar:Int [ooooo bals]]
-        [let greeter:Greeter:mut]
         
         # when translated to C:
         # struct String var = { 0 }, Int otherVar = { 0 };
