@@ -171,6 +171,7 @@ func (lexer *Lexer) tokenizeLine () (done bool, err error) {
         if len(line.Tokens) > 0 {
                 lexer.lines = append(lexer.lines, line)
         }
+
         return
 }
 
@@ -560,7 +561,10 @@ func (lexer *Lexer) skipWhitespace () {
 func (lexer *Lexer) nextLine () (done bool, ignore bool, err error) {
         lexer.lineNumber ++
         
-        done = lexer.lineNumber >= lexer.file.GetLength() - 1
+        if lexer.lineNumber >= lexer.file.GetLength() {
+                return true, true, nil
+        }
+        
         ignore = false
 
         line := &Line {

@@ -117,11 +117,15 @@ func (function *Function) Dump () {
                         
                 for _, value := range output.value {
                         printIndent(2)
-                        fmt.Println (value)
+                        fmt.Println(value)
                 }
         }
         
         fmt.Println("        ---")
+
+        if function.external {
+                fmt.Println("        external")
+        }
 
         if function.root != nil {
                 function.root.Dump(1)

@@ -24,6 +24,8 @@ type Function struct {
 
         modeInternal Mode
         modeExternal Mode
+
+        external bool
 }
 
 type Identifier struct {

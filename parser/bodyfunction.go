@@ -52,6 +52,25 @@ func (parser *Parser) parseBodyFunction () (section *Function, err error) {
                 if parser.endOfFile() || parser.line.Indent == 0 { return }
         }
 
+        println("ASKDJASKDJS")
+
+        // if the function is external, skip over it.
+        if (
+                parser.token.Kind == lexer.TokenKindName &&
+                parser.token.StringValue == "external") {
+        
+                parser.nextToken()
+                if parser.token.Kind != lexer.TokenKindNone {
+                        parser.printError (
+                                parser.token.Column,
+                                "nothing should come after external")
+                        return nil, nil
+                }
+
+                section.external = true
+                return section, parser.skipBodySection()
+        }
+
         // function body
         block, err := parser.parseBodyFunctionBlock(0)
         section.root = block
