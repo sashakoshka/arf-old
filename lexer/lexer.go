@@ -59,8 +59,9 @@ type Line struct {
 
         // Row is the position of the line in the file. Again, this is for error
         // reporting.
-        Row    int
-        Column int
+        Row       int
+        Column    int
+        EndColumn int
 
         // Indent is the indentation level of the line. 
         Indent int
@@ -573,10 +574,10 @@ func (lexer *Lexer) nextLine () (done bool, ignore bool, err error) {
                 if ch == '#' { return false, true, nil }
                 if ch != ' ' { break }
         }
-
-        line.runes = []rune(strings.TrimSpace(lineValue))
-
         line.Column = line.Indent
+        line.runes = []rune(strings.TrimSpace(lineValue))
+        line.EndColumn = line.Indent + len(line.runes)
+        
         if line.Indent % 8 != 0 {
                 line.Indent /= 8
                 lexer.printError (

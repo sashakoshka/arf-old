@@ -241,7 +241,7 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
                 errColumn = parser.lines[len(parser.lines) - 1].GetLength()
         } else if parser.endOfLine() {
                 errText += "end of line"
-                errColumn = parser.line.GetLength()
+                errColumn = parser.line.EndColumn
         } else {
                 errText += currentKind.ToString() + " token"
         }
