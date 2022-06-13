@@ -245,18 +245,21 @@ func (parser *Parser) expect (kinds ...lexer.TokenKind) (match bool) {
         } else {
                 errText += currentKind.ToString() + " token"
         }
+        errText += "."
 
-        errText += ". expected "
+        // print out what was expected, if there are less than 6 expected items.
+        if (len(kinds) < 6) {
+                errText += " expected "
+                if len(kinds) > 1 {
+                        for _, kind := range kinds[:len(kinds) - 1] {
+                                errText += kind.ToString() + ", "
+                        }
 
-        if len(kinds) > 1 {
-                for _, kind := range kinds[:len(kinds) - 1] {
-                        errText += kind.ToString() + ", "
+                        errText += "or "
                 }
-
-                errText += "or "
+                
+                errText += kinds[len(kinds) - 1].ToString()
         }
-        
-        errText += kinds[len(kinds) - 1].ToString()
 
         parser.printError(errColumn, errText)
         return false

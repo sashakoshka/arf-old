@@ -10,7 +10,7 @@ func rr main
         ---
         someFunc -> var:String otherVar:Int
 
-        when translated to C:
+        # when translated to C:
         # struct String var = { 0 }, Int otherVar = { 0 };
         # someFunc(&var, &otherVar);
 
