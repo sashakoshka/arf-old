@@ -189,7 +189,7 @@ func (parser *Parser) parseBodyFunctionBlock (
                         statement,
                         worked, err = parser.parseBodyFunctionStatement (
                                 parentIndent + 1,
-                                block)
+                                true, block)
                         if err != nil || !worked { return }
 
                         block.items = append (
@@ -229,9 +229,10 @@ func (parser *Parser) parseBodyFunctionBlock (
  * done recursively, and it may eat up more lines than one.
  */
 func (parser *Parser) parseBodyFunctionStatement (
-        parentIndent int,
+        parentIndent      int,
+        isDirectlyInBlock bool,
         // specifically for defining variables in
-        parent *Block,
+        parent           *Block,
 ) (
         statement *Statement,
         worked bool,
@@ -344,7 +345,7 @@ func (parser *Parser) parseBodyFunctionStatement (
         }
 
         // if we don't need to parse a return direction, stop
-        if (parser.token.Kind != lexer.TokenKindDirection) {
+        if parser.token.Kind != lexer.TokenKindDirection || !isDirectlyInBlock {
                 return statement, true, nil
         }
 
@@ -381,7 +382,9 @@ func (parser *Parser) parseBodyFunctionStatementArgument (
         case lexer.TokenKindLBracket:
                 childStatement,
                 worked,
-                err := parser.parseBodyFunctionStatement (parentIndent, parent)
+                err := parser.parseBodyFunctionStatement (
+                        parentIndent,
+                        false, parent)
                 if err != nil { return argument, false, err }
                 if !worked {
                         parser.nextToken()
