@@ -349,9 +349,7 @@ func (lexer *Lexer) tokenizeNumber (negative bool) {
 func (lexer *Lexer) tokenizeString (terminator rune) {
         line := lexer.line
 
-        // TODO: create rune literal token kind
         token := Token {
-                Kind:   TokenKindString,
                 Column: line.index + line.Column,
         }
 
@@ -380,8 +378,11 @@ func (lexer *Lexer) tokenizeString (terminator rune) {
                                 "rune literal must be one rune in size")
                         token.Value = '\000'
                 }
+
+                token.Kind = TokenKindRune
         } else {
                 token.Value = token.StringValue
+                token.Kind = TokenKindString
         }
 
         line.addExisting(&token)
