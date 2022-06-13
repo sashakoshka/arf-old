@@ -72,15 +72,22 @@ func (lineFile *LineFile) printMistake (
         row int,
         cause ...interface{},
 ) {
+        indent := 0
+        lineValue := lineFile.lines[row]
+        for i, ch := range lineValue {
+                indent = i
+                if ch != ' ' { break }
+        }
+        
         fmt.Println (
                 kind, "\033[90min\033[0m", lineFile.path,
                 "\033[34m" + strconv.Itoa(row + 1) + ":" +
                 strconv.Itoa(column + 1),
                 "\033[90mof\033[0m", lineFile.module)
-        fmt.Println("   ", strings.TrimSpace(lineFile.lines[row]))
+        fmt.Println("   ", strings.TrimSpace(lineValue))
 
         fmt.Print("    ")
-        for column > 0 {
+        for column > indent {
                 fmt.Print("-")
                 column --
         }

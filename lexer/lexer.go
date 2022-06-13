@@ -55,11 +55,12 @@ type Lexer struct {
  */
 type Line struct {
         runes []rune
+        index int
 
-        // Row is theposition of the line in the file. Again, this is for error
+        // Row is the position of the line in the file. Again, this is for error
         // reporting.
         Row    int
-        column int
+        Column int
 
         // Indent is the indentation level of the line. 
         Indent int
@@ -174,15 +175,15 @@ func (lexer *Lexer) tokenizeLine () (done bool, err error) {
 
 func (line *Line) ch () (ch rune) {
         if !line.notEnd() { return '\000' }
-        return line.runes[line.column]
+        return line.runes[line.index]
 }
 
 func (line *Line) nextRune () {
-        line.column ++
+        line.index ++
 }
 
 func (line *Line) notEnd () (keepGoing bool) {
-        return line.column < len(line.runes)
+        return line.index < len(line.runes)
 }
 
 func (line *Line) add (
@@ -194,7 +195,7 @@ func (line *Line) add (
                 Kind:        kind,
                 StringValue: stringValue,
                 Value:       value,
-                Column:      line.column,
+                Column:      line.index + line.Column,
         })
 }
 
@@ -243,7 +244,7 @@ func (lexer *Lexer) tokenizeNumber (negative bool) {
         isFloat := false
         floatPosition := 0
 
-        token := Token { Column: line.column }
+        token := Token { Column: line.index + line.Column }
 
         if line.ch() == '0' {
                 line.nextRune()
@@ -347,9 +348,10 @@ func (lexer *Lexer) tokenizeNumber (negative bool) {
 func (lexer *Lexer) tokenizeString (terminator rune) {
         line := lexer.line
 
+        // TODO: create rune literal token kind
         token := Token {
                 Kind:   TokenKindString,
-                Column: line.column,
+                Column: line.index + line.Column,
         }
 
         line.nextRune()
@@ -359,7 +361,7 @@ func (lexer *Lexer) tokenizeString (terminator rune) {
                 if ch == terminator { break }
                 if ch == '\\' {
                         err := line.getEscapeSequence(&token)
-                        if err != nil { lexer.printError(line.column, err) }
+                        if err != nil { lexer.printError(line.index, err) }
                         continue
                 }
                 
@@ -373,13 +375,14 @@ func (lexer *Lexer) tokenizeString (terminator rune) {
                         token.Value = runes[0]
                 } else {
                         lexer.printError (
-                                line.column - 1,
+                                line.index - 1,
                                 "rune literal must be one rune in size")
                         token.Value = '\000'
                 }
         } else {
                 token.Value = token.StringValue
         }
+
         line.addExisting(&token)
 }
 
@@ -463,7 +466,7 @@ func (lexer *Lexer) tokenizeSymbol () {
         line := lexer.line
 
         token := Token {
-                Column: line.column,
+                Column: line.index + line.Column,
         }
         
         for line.notEnd() {
@@ -513,7 +516,7 @@ func (lexer *Lexer) tokenizeMulti () {
         line := lexer.line
 
         token := Token {
-                Column: line.column,
+                Column: line.index + line.Column,
         }
         
         for line.notEnd() {
@@ -573,6 +576,7 @@ func (lexer *Lexer) nextLine () (done bool, ignore bool, err error) {
 
         line.runes = []rune(strings.TrimSpace(lineValue))
 
+        line.Column = line.Indent
         if line.Indent % 8 != 0 {
                 line.Indent /= 8
                 lexer.printError (
@@ -587,12 +591,16 @@ func (lexer *Lexer) nextLine () (done bool, ignore bool, err error) {
 
 func (lexer *Lexer) printWarning (column int, cause ...interface {}) {
         lexer.warnCount ++
-        lexer.file.PrintWarning(column, lexer.lineNumber, cause...)
+        lexer.file.PrintWarning (
+                column + lexer.line.Column,
+                lexer.lineNumber, cause...)
 }
 
 func (lexer *Lexer) printError (column int, cause ...interface {}) {
         lexer.errorCount ++
-        lexer.file.PrintError(column, lexer.lineNumber, cause...)
+        lexer.file.PrintError (
+                column + lexer.line.Column,
+                lexer.lineNumber, cause...)
 }
 
 func (lexer *Lexer) printFatal (err error) {
