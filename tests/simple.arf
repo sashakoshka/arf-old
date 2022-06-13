@@ -3,9 +3,18 @@ module simple
 require "io"
 ---
 
+data wr public:{Int} 
+        49358 493
+        283 834
+
+data wn private:{Int}
+        3
+        234
+        2
+
 func rr main
         > argc:Int
         > argv:{String}
         < status:Int
         ---
-        external
+        io.println "hello world"

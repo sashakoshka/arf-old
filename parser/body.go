@@ -8,7 +8,7 @@ import (
 /* parseBody parses the body of an arf file. This contains sections, which have
  * code in them. Returns an error if the file cannot be parsed further.
  */
-func (parser *Parser) parseBody () (err error) {
+func (parser *Parser) parseBody (skim bool) (err error) {
         for !parser.endOfFile() {                
                 if parser.line.Indent != 0 {
                         parser.printError(0, errBadIndent)
@@ -20,24 +20,30 @@ func (parser *Parser) parseBody () (err error) {
                 switch parser.token.StringValue {
                 case "data":
                         parser.nextToken()
-                        section, err := parser.parseBodyData(0)
+                        section, err := parser.parseBodyData(skim, 0)
                         if err != nil { return err }
-                        err = parser.module.addData(section)
-                        if err != nil { parser.printError(5, err) }
+                        if section != nil {
+                                err = parser.module.addData(section)
+                                if err != nil { parser.printError(5, err) }
+                        }
                         break
                 case "type":
                         parser.nextToken()
-                        section, err := parser.parseBodyTypedef()
+                        section, err := parser.parseBodyTypedef(skim)
                         if err != nil { return err }
-                        err = parser.module.addTypedef(section)
-                        if err != nil { parser.printError(5, err) }
+                        if section != nil {
+                                err = parser.module.addTypedef(section)
+                                if err != nil { parser.printError(5, err) }
+                        }
                         break
                 case "func":
                         parser.nextToken()
-                        section, err := parser.parseBodyFunction()
+                        section, err := parser.parseBodyFunction(skim)
                         if err != nil { return err }
-                        err = parser.module.addFunction(section)
-                        if err != nil { parser.printError(5, err) }
+                        if section != nil {
+                                err = parser.module.addFunction(section)
+                                if err != nil { parser.printError(5, err) }
+                        }
                         break
                 default:
                         parser.printError (
@@ -54,6 +60,7 @@ func (parser *Parser) parseBody () (err error) {
 /* parseBodyData parses a data section.
  */
 func (parser *Parser) parseBodyData (
+        skim bool,
         parentIndent int,
 ) (
         section *Data,
@@ -68,10 +75,23 @@ func (parser *Parser) parseBodyData (
         section.modeInternal,
         section.modeExternal = decodePermission(parser.token.StringValue)
 
+        // if we are skimming and other modules don't have access to this, don't
+        // parse it
+        if (skim && section.modeExternal == ModeDeny) {
+                section.external = true
+                return nil, parser.skipBodySection()
+        }
+        
         worked := false
         section.name, section.what, worked, err = parser.parseDeclaration()
         if !worked {
                 return nil, parser.skipBodySection()
+        }
+        
+        // if we are skimming, don't parse the default values.
+        if (skim) {
+                section.external = true
+                return section, parser.skipBodySection()
         }
 
         section.value, worked, err = parser.parseDefaultValues(parentIndent)
@@ -83,7 +103,12 @@ func (parser *Parser) parseBodyData (
 
 /* parseBodyTypedef parses a type definition section.
  */
-func (parser *Parser) parseBodyTypedef () (section *Typedef, err error) {
+func (parser *Parser) parseBodyTypedef (
+        skim bool,
+) (
+        section *Typedef,
+        err error,
+) {
         section = &Typedef {}
 
         if !parser.expect(lexer.TokenKindPermission) {
@@ -92,6 +117,12 @@ func (parser *Parser) parseBodyTypedef () (section *Typedef, err error) {
 
         section.modeInternal,
         section.modeExternal = decodePermission(parser.token.StringValue)
+        
+        // if we are skimming and other modules don't have access to this, don't
+        // parse it
+        if (skim && section.modeExternal == ModeDeny) {
+                return nil, parser.skipBodySection()
+        }
 
         worked := false
         section.name, section.inherits, worked, err = parser.parseDeclaration()
@@ -106,7 +137,7 @@ func (parser *Parser) parseBodyTypedef () (section *Typedef, err error) {
         for {
                 if done || parser.line.Indent == 0 { return }
 
-                member, err := parser.parseBodyData(1)
+                member, err := parser.parseBodyData(skim, 1)
                 if err != nil { return nil, err }
                 if member == nil { return nil, nil }
 
@@ -158,6 +189,7 @@ func (parser *Parser) parseDefaultValues (
                 for {
                         if !parser.expect (
                                 lexer.TokenKindNone,
+                                lexer.TokenKindInteger,
                                 lexer.TokenKindSignedInteger,
                                 lexer.TokenKindFloat,
                                 lexer.TokenKindString,

@@ -98,6 +98,8 @@ type Data struct {
 
         modeInternal Mode
         modeExternal Mode
+
+        external bool
 }
 
 type Mode int

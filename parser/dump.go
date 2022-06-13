@@ -66,6 +66,10 @@ func (data *Data) Dump (indent int) {
         }
 
         fmt.Println("", data.name + ":" + data.what.ToString())
+
+        if data.external {
+                fmt.Println("        external")
+        }
         
         for _, value := range data.value {
                 printIndent(indent + 1)

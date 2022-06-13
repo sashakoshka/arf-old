@@ -6,7 +6,12 @@ import (
 
 /* parseBodyFunction parses a function section.
  */
-func (parser *Parser) parseBodyFunction () (section *Function, err error) {
+func (parser *Parser) parseBodyFunction (
+        skim bool,
+) (
+        section *Function,
+        err error,
+) {
         section = &Function {
                 inputs:  make(map[string] *Data),
                 outputs: make(map[string] *Data),
@@ -19,6 +24,13 @@ func (parser *Parser) parseBodyFunction () (section *Function, err error) {
 
         section.modeInternal,
         section.modeExternal = decodePermission(parser.token.StringValue)
+
+        // if we are skimming and other modules don't have access to this, don't
+        // even bother parsing the argument and stuff
+        if (skim && section.modeExternal == ModeDeny) {
+                section.external = true
+                return nil, parser.skipBodySection()
+        }
 
         parser.nextToken()
         if !parser.expect(lexer.TokenKindName) {
@@ -52,13 +64,18 @@ func (parser *Parser) parseBodyFunction () (section *Function, err error) {
                 if parser.endOfFile() || parser.line.Indent == 0 { return }
         }
 
-        println("ASKDJASKDJS")
+        // if we are skimming the file, skip over the function content
+        if (skim) {
+                section.external = true
+                return section, parser.skipBodySection()
+        }
 
-        // if the function is external, skip over it.
-        if (
+        isExternal :=
                 parser.token.Kind == lexer.TokenKindName &&
-                parser.token.StringValue == "external") {
+                parser.token.StringValue == "external"
         
+        // if the function is external, skip over it.
+        if (isExternal) {
                 parser.nextToken()
                 if parser.token.Kind != lexer.TokenKindNone {
                         parser.printError (

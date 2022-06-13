@@ -16,7 +16,11 @@ func main () {
         var totalWarnings int
         var totalErrors   int
         
-        module, parserWarnings, parserErrors, err := parser.Parse(os.Args[1])
+        module,
+        parserWarnings,
+        parserErrors,
+        err := parser.Parse(os.Args[1], false)
+        
         totalWarnings += parserWarnings
         totalErrors   += parserErrors
         if err != nil { os.Exit(1) }

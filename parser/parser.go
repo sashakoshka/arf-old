@@ -50,6 +50,7 @@ type Parser struct {
  */
 func Parse (
         modulePath string,
+        skim bool,
 ) (
         module     *Module,
         warnCount  int,
@@ -94,7 +95,7 @@ func Parse (
 
                 // attempt to parse the file. if any part fails, go on to the
                 // next one.
-                err = parser.parseFile(filePath)
+                err = parser.parseFile(filePath, skim)
                 if err != nil { continue }
         }
 
@@ -109,7 +110,7 @@ func Parse (
 
 /* parseFile parses a specific file into the module.
  */
-func (parser *Parser) parseFile (filePath string) (err error) {
+func (parser *Parser) parseFile (filePath string, skim bool) (err error) {
         // open file safely
         parser.file, err = lineFile.Open(filePath, parser.module.name)
         if err != nil {
@@ -144,7 +145,7 @@ func (parser *Parser) parseFile (filePath string) (err error) {
         }
 
         // parse body
-        err = parser.parseBody()
+        err = parser.parseBody(skim)
         if err != nil {
                 parser.printFatal(err)
                 return err
