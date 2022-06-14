@@ -624,7 +624,18 @@ func (parser *Parser) parseBodyFunctionAssemblyBlock (
         worked bool,
         err error,
 ) {
-        // if !parser.Expect
+        assemblyBlock = &AssemblyBlock { code: code }
+        
+        for {
+                worked, err = parser.parseBodyFunctionAssemblyArgumentFor (
+                        parentIndent + 1, parent,
+                        assemblyBlock)
+                if !worked || err != nil {
+                        parser.skipBodyFunctionBlock(parentIndent + 1)
+                        return
+                }
+                parser.nextLine()
+        }
 
         return assemblyBlock, true, nil
 }
