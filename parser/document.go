@@ -4,6 +4,10 @@ import (
         "errors"
 )
 
+// TODO: create struct with row and column info and put it directly in all
+// things.
+// type
+
 type Module struct {
         name    string
         author  string
@@ -39,9 +43,22 @@ type Type struct {
         mutable bool
 }
 
+type AssemblyBlock struct {
+        code      string
+        outputs   []AssemblyArgument
+        inputs    []AssemblyArgument
+        clobbered []string
+}
+
+type AssemblyArgument struct {
+        register string
+        argument Argument
+}
+
 type BlockOrStatement struct {
         block     *Block
         statement *Statement
+        assembly  *AssemblyBlock
 }
 
 type Block struct {

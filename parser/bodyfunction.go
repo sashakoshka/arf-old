@@ -610,6 +610,19 @@ func (parser *Parser) parseDereference (
         return dereference, true, nil
 }
 
+/* skipBodyFunctionBlock skips to the end of the current block. This is done
+ * soley based on indentation.
+ */
+func (parser *Parser) skipBodyFunctionBlock (parentIndent int) (err error) {
+        for {
+                parser.nextLine()
+                if parser.endOfFile() { break }
+                if parser.line.Indent <= parentIndent { break }
+        }
+
+        return
+}
+
 /* skipBodyFunctionStatement skips to the end of the current statement, or
  * indentation drop.
  */

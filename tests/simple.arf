@@ -3,18 +3,24 @@ module simple
 require "io"
 ---
 
-data wr public:{Int} 
-        49358 493
-        283 834
-
-data wn private:{Int}
-        3
-        234
-        2
-
 func rr main
         > argc:Int
         > argv:{String}
         < status:Int
         ---
-        io.println "hello world"
+        write 1 "hello world" 11
+
+func rr write
+        > fileDescriptor:UInt
+        > buffer:Uint8
+        > length:UInt
+        < status:Int
+        ---
+        asm "syscall"
+                > "a" 1
+                > "d" fileDescriptor
+                > "S" buffer
+                > "d" length
+                < "a" status
+                % "rcx" "r11" "memory"
+
