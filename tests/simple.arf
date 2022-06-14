@@ -16,7 +16,7 @@ func rr write
         > length:UInt
         < status:Int
         ---
-        asm "syscall"
+        asm "syscall" "sdf"
                 > "a" 1
                 > "d" fileDescriptor
                 > "S" buffer

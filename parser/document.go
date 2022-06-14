@@ -43,8 +43,7 @@ type Type struct {
         mutable bool
 }
 
-type AssemblyBlock struct {
-        code      string
+type AssemblyArgumentBlock struct {
         outputs   []AssemblyArgument
         inputs    []AssemblyArgument
         clobbered []string
@@ -58,7 +57,7 @@ type AssemblyArgument struct {
 type BlockOrStatement struct {
         block     *Block
         statement *Statement
-        assembly  *AssemblyBlock
+        assembly  *AssemblyArgumentBlock
 }
 
 type Block struct {
