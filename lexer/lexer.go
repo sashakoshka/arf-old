@@ -94,7 +94,11 @@ func Tokenize (
                 if done || err != nil { break }
         }
 
-        // TODO: set all runes in lines to nil to free memory
+        // set all runes in lines to nil to free memory
+        for _, line := range lexer.lines {
+                line.runes = nil
+        }
+        
         return lexer.lines, lexer.warnCount, lexer.errorCount, err
 }
 
