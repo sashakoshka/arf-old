@@ -503,7 +503,7 @@ func (parser *Parser) parseBodyFunctionIdentifierOrDeclaration (
                 return nil, false, nil
         }
 
-        identifier = &Identifier {trail}
+        identifier = &Identifier { trail: trail }
         if (parser.token.Kind != lexer.TokenKindColon) {
                 return identifier, true, nil
         }

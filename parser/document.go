@@ -4,11 +4,14 @@ import (
         "errors"
 )
 
-// TODO: create struct with row and column info and put it directly in all
-// things.
-// type
+type Position struct {
+        Row    int
+        Column int
+}
 
 type Module struct {
+        Where Position
+
         name    string
         author  string
         license string
@@ -20,6 +23,8 @@ type Module struct {
 }
 
 type Function struct {
+        Where Position
+        
         self     *Data        
         name     string
         inputs   map[string] *Data
@@ -33,39 +38,37 @@ type Function struct {
 }
 
 type Identifier struct {
+        Where Position
+        
         trail []string
 }
 
 type Type struct {
+        Where Position
+        
         name    Identifier
         points  *Type
         items   uint64
         mutable bool
 }
 
-type AssemblyArgumentBlock struct {
-        outputs   []AssemblyArgument
-        inputs    []AssemblyArgument
-        clobbered []string
-}
-
-type AssemblyArgument struct {
-        register string
-        argument Argument
-}
-
 type BlockOrStatement struct {
+        Where Position
+        
         block     *Block
         statement *Statement
-        assembly  *AssemblyArgumentBlock
 }
 
 type Block struct {
+        Where Position
+        
         datas map[string] *Data
         items []BlockOrStatement
 }
 
 type Statement struct {
+        Where Position
+        
         command   Identifier
         arguments []Argument
 
@@ -76,6 +79,8 @@ type Statement struct {
 }
 
 type Dereference struct {
+        Where Position
+        
         dereferences *Argument
         offset       uint64
 }
@@ -95,6 +100,8 @@ const (
 )
 
 type Argument struct {
+        Where Position
+        
         kind ArgumentKind
         
         statementValue     *Statement
@@ -108,6 +115,8 @@ type Argument struct {
 }
 
 type Data struct {
+        Where Position
+        
         name  string
         what  Type
         value []interface {}
@@ -127,6 +136,8 @@ const (
 )
 
 type Typedef struct {
+        Where Position
+        
         name     string
         inherits Type
 
