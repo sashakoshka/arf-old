@@ -66,7 +66,9 @@ func (parser *Parser) parseBodyData (
         section *Data,
         err error,
 ) {
-        section = &Data {}
+        section = &Data {
+                Where: parser.embedPosition(),
+        }
 
         if !parser.expect(lexer.TokenKindPermission) {
                 return nil, parser.skipBodySection()
@@ -109,7 +111,9 @@ func (parser *Parser) parseBodyTypedef (
         section *Typedef,
         err error,
 ) {
-        section = &Typedef {}
+        section = &Typedef {
+                Where: parser.embedPosition(),
+        }
 
         if !parser.expect(lexer.TokenKindPermission) {
                  return nil, parser.skipBodySection()
@@ -325,4 +329,22 @@ func (parser *Parser) parseType () (
         }
 
         return what, true, nil
+}
+
+func decodePermission (value string) (internal Mode, external Mode) {
+        if len(value) < 1 { return }
+        switch value[0] {
+                case 'n': internal = ModeDeny;  break
+                case 'r': internal = ModeRead;  break
+                case 'w': internal = ModeWrite; break
+        }
+
+        if len(value) < 2 { return }
+        switch value[1] {
+                case 'n': external = ModeDeny;  break
+                case 'r': external = ModeRead;  break
+                case 'w': external = ModeWrite; break
+        }
+
+        return
 }

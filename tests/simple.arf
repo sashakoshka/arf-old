@@ -1,6 +1,5 @@
 :arf
 module simple
-require "io"
 ---
 
 func rr main
@@ -8,19 +7,4 @@ func rr main
         > argv:{String}
         < status:Int
         ---
-        write 1 "hello world" 11
-
-func rr write
-        > fileDescriptor:UInt
-        > buffer:Uint8
-        > length:UInt
-        < status:Int
-        ---
-        asm "syscall" "sdf"
-                > "a" 1
-                > "d" fileDescriptor
-                > "S" buffer
-                > "d" length
-                < "a" status
-                % "rcx" "r11" "memory"
-
+        "puts" "hello world!"

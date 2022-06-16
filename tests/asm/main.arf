@@ -1,0 +1,23 @@
+:arf
+module main
+---
+
+func rr main
+        > argc:Int
+        > argv:{String}
+        < status:Int
+        ---
+        write 1 "hello world" 11
+
+func rr write
+        > fileDescriptor:UInt
+        > buffer:Uint8
+        > length:UInt
+        < status:Int
+        ---
+        asm "int $0x80\n\t"
+                < "=a" status
+                > "a" 4
+                > "b" fileDescriptor
+                > "c" buffer
+                > "d" length

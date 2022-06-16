@@ -2,11 +2,13 @@ package parser
 
 import (
         "errors"
+        "github.com/sashakoshka/arf/lineFile"
 )
 
 type Position struct {
         Row    int
         Column int
+        File   *lineFile.LineFile
 }
 
 type Module struct {
@@ -147,24 +149,6 @@ type Typedef struct {
         modeExternal Mode
 }
 
-func decodePermission (value string) (internal Mode, external Mode) {
-        if len(value) < 1 { return }
-        switch value[0] {
-                case 'n': internal = ModeDeny;  break
-                case 'r': internal = ModeRead;  break
-                case 'w': internal = ModeWrite; break
-        }
-
-        if len(value) < 2 { return }
-        switch value[1] {
-                case 'n': external = ModeDeny;  break
-                case 'r': external = ModeRead;  break
-                case 'w': external = ModeWrite; break
-        }
-
-        return
-}
-
 func (module *Module) addData (data *Data) (err error) {
         if data == nil { return }
         _, exists := module.datas[data.name]
@@ -200,4 +184,3 @@ func (module *Module) addFunction (function *Function) (err error) {
         module.functions[function.name] = function
         return nil
 }
-

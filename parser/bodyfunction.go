@@ -13,6 +13,7 @@ func (parser *Parser) parseBodyFunction (
         err error,
 ) {
         section = &Function {
+                Where:   parser.embedPosition(),
                 inputs:  make(map[string] *Data),
                 outputs: make(map[string] *Data),
                 root:    &Block {},
@@ -106,6 +107,7 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
         case "@":
                 // these modes are mainly being set for semantic value
                 section.self = &Data {
+                        Where:        parser.embedPosition(),
                         modeInternal: ModeRead,
                         modeExternal: ModeDeny,
                 }
@@ -132,7 +134,9 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 break
 
         case ">":
-                input := &Data {}
+                input := &Data {
+                        Where: parser.embedPosition(),
+                }
                 input.name,
                 input.what,
                 _, err =  parser.parseDeclaration()
@@ -155,7 +159,9 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 break
         
         case "<":
-                output := &Data {}
+                output := &Data {
+                        Where: parser.embedPosition(),
+                }
                 output.name,
                 output.what,
                 _, err =  parser.parseDeclaration()
@@ -202,6 +208,7 @@ func (parser *Parser) parseBodyFunctionBlock (
         err error,
 ) {
         block = &Block {
+                Where: parser.embedPosition(),
                 datas: make(map[string] *Data),
         }
 
@@ -274,7 +281,9 @@ func (parser *Parser) parseBodyFunctionStatement (
         worked bool,
         err error,
 ) {       
-        statement = &Statement {}
+        statement = &Statement {
+                Where: parser.embedPosition(),
+        }
 
         match := parser.expect (
                 lexer.TokenKindLBracket,
@@ -503,7 +512,10 @@ func (parser *Parser) parseBodyFunctionIdentifierOrDeclaration (
                 return nil, false, nil
         }
 
-        identifier = &Identifier { trail: trail }
+        identifier = &Identifier {
+                Where: parser.embedPosition(),
+                trail: trail,
+        }
         if (parser.token.Kind != lexer.TokenKindColon) {
                 return identifier, true, nil
         }
@@ -537,6 +549,8 @@ func (parser *Parser) parseBodyFunctionIdentifierOrDeclaration (
         }
         
         parent.datas[name] = &Data {
+                Where: parser.embedPosition(),
+                
                 name: name,
                 what: what,
 

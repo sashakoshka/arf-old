@@ -321,3 +321,15 @@ func (parser *Parser) printGeneralFatal (err error) {
                 parser.module.name)
         fmt.Println("   ", err)
 }
+
+/* embedPosition
+ * Returns a position object reflecting the current position of the parser that
+ * can be embedded into a struct.
+ */
+func (parser *Parser) embedPosition () (position Position) {
+        return Position {
+                Column: parser.token.Column,
+                Row:    parser.line.Row,
+                File:   parser.file,
+        }
+}
