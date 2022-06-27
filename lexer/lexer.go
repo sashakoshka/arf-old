@@ -1,14 +1,12 @@
 package lexer
 
-import (
-        "fmt"
-        "math"
-        "errors"
-        "strings"
-        "strconv"
-        "github.com/sashakoshka/arf/lineFile"
-        "github.com/sashakoshka/arf/validate"
-)
+import "fmt"
+import "math"
+import "errors"
+import "strings"
+import "strconv"
+import "github.com/sashakoshka/arf/lineFile"
+import "github.com/sashakoshka/arf/validate"
 
 /* TokenKind is an enum represzenting what type a token is.
  */

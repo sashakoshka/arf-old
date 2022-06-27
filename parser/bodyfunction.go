@@ -1,8 +1,6 @@
 package parser
 
-import (
-        "github.com/sashakoshka/arf/lexer"
-)
+import "github.com/sashakoshka/arf/lexer"
 
 /* parseBodyFunction parses a function section.
  */

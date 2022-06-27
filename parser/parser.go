@@ -1,17 +1,15 @@
 package parser
 
-import (
-        "os"
-        "fmt"
-        "path"
-        "bufio"
-        "errors"
-        "strings"
-        "io/ioutil"
-        "github.com/sashakoshka/arf/lexer"
-        "github.com/sashakoshka/arf/lineFile"
-        "github.com/sashakoshka/arf/validate"
-)
+import "os"
+import "fmt"
+import "path"
+import "bufio"
+import "errors"
+import "strings"
+import "io/ioutil"
+import "github.com/sashakoshka/arf/lexer"
+import "github.com/sashakoshka/arf/lineFile"
+import "github.com/sashakoshka/arf/validate"
 
 var (
         errEmptyModule   = errors.New("there are no files in this module")

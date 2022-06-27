@@ -1,9 +1,6 @@
 package parser
 
-import (
-        "github.com/sashakoshka/arf/lexer"
-        // "fmt"
-)
+import "github.com/sashakoshka/arf/lexer"
 
 /* parseBody parses the body of an arf file. This contains sections, which have
  * code in them. Returns an error if the file cannot be parsed further.

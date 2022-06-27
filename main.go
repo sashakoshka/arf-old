@@ -1,11 +1,9 @@
 package main
 
-import (
-        "os"
-        "fmt"
-        "github.com/sashakoshka/arf/parser"
-        "github.com/sashakoshka/arf/analyzer"
-)
+import "os"
+import "fmt"
+import "github.com/sashakoshka/arf/parser"
+import "github.com/sashakoshka/arf/analyzer"
 
 func main () {
         if (len(os.Args) < 2) {

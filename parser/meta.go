@@ -1,8 +1,6 @@
 package parser
 
-import (
-        "github.com/sashakoshka/arf/lexer"
-)
+import "github.com/sashakoshka/arf/lexer"
 
 /* parseMeta parses the metadata header of an arf file. This contains the module
  * name, and other miscellaneous fields such as author and license. Returns an

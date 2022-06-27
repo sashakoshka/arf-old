@@ -1,8 +1,6 @@
 package analyzer
 
-import (
-        "github.com/sashakoshka/arf/parser"
-)
+import "github.com/sashakoshka/arf/parser"
 
 type Analyzer struct {
         

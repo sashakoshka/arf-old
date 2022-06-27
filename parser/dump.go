@@ -1,8 +1,6 @@
 package parser
 
-import (
-        "fmt"
-)
+import "fmt"
 
 func (module *Module) Dump () {
         fmt.Println(":arf")

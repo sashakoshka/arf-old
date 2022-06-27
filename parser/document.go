@@ -1,9 +1,7 @@
 package parser
 
-import (
-        "errors"
-        "github.com/sashakoshka/arf/lineFile"
-)
+import "errors"
+import "github.com/sashakoshka/arf/lineFile"
 
 type Position struct {
         Row    int
