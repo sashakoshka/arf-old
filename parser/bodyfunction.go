@@ -13,7 +13,7 @@ func (parser *Parser) parseBodyFunction (
         err error,
 ) {
         section = &Function {
-                Where:   parser.embedPosition(),
+                where:   parser.embedPosition(),
                 inputs:  make(map[string] *Data),
                 outputs: make(map[string] *Data),
                 root:    &Block {},
@@ -107,7 +107,7 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
         case "@":
                 // these modes are mainly being set for semantic value
                 section.self = &Data {
-                        Where:        parser.embedPosition(),
+                        where:        parser.embedPosition(),
                         modeInternal: ModeRead,
                         modeExternal: ModeDeny,
                 }
@@ -135,7 +135,7 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
 
         case ">":
                 input := &Data {
-                        Where: parser.embedPosition(),
+                        where: parser.embedPosition(),
                 }
                 input.name,
                 input.what,
@@ -160,7 +160,7 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
         
         case "<":
                 output := &Data {
-                        Where: parser.embedPosition(),
+                        where: parser.embedPosition(),
                 }
                 output.name,
                 output.what,
@@ -208,7 +208,7 @@ func (parser *Parser) parseBodyFunctionBlock (
         err error,
 ) {
         block = &Block {
-                Where: parser.embedPosition(),
+                where: parser.embedPosition(),
                 datas: make(map[string] *Data),
         }
 
@@ -282,7 +282,7 @@ func (parser *Parser) parseBodyFunctionStatement (
         err error,
 ) {       
         statement = &Statement {
-                Where: parser.embedPosition(),
+                where: parser.embedPosition(),
         }
 
         match := parser.expect (
@@ -513,7 +513,7 @@ func (parser *Parser) parseBodyFunctionIdentifierOrDeclaration (
         }
 
         identifier = &Identifier {
-                Where: parser.embedPosition(),
+                where: parser.embedPosition(),
                 trail: trail,
         }
         if (parser.token.Kind != lexer.TokenKindColon) {
@@ -549,7 +549,7 @@ func (parser *Parser) parseBodyFunctionIdentifierOrDeclaration (
         }
         
         parent.datas[name] = &Data {
-                Where: parser.embedPosition(),
+                where: parser.embedPosition(),
                 
                 name: name,
                 what: what,

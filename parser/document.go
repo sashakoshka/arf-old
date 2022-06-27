@@ -12,7 +12,7 @@ type Position struct {
 }
 
 type Module struct {
-        Where Position
+        where Position
 
         name    string
         author  string
@@ -25,7 +25,7 @@ type Module struct {
 }
 
 type Function struct {
-        Where Position
+        where Position
         
         self     *Data        
         name     string
@@ -40,13 +40,13 @@ type Function struct {
 }
 
 type Identifier struct {
-        Where Position
+        where Position
         
         trail []string
 }
 
 type Type struct {
-        Where Position
+        where Position
         
         name    Identifier
         points  *Type
@@ -55,21 +55,21 @@ type Type struct {
 }
 
 type BlockOrStatement struct {
-        Where Position
+        where Position
         
         block     *Block
         statement *Statement
 }
 
 type Block struct {
-        Where Position
+        where Position
         
         datas map[string] *Data
         items []BlockOrStatement
 }
 
 type Statement struct {
-        Where Position
+        where Position
         
         command   Identifier
         arguments []Argument
@@ -81,7 +81,7 @@ type Statement struct {
 }
 
 type Dereference struct {
-        Where Position
+        where Position
         
         dereferences *Argument
         offset       uint64
@@ -102,7 +102,7 @@ const (
 )
 
 type Argument struct {
-        Where Position
+        where Position
         
         kind ArgumentKind
         
@@ -117,7 +117,7 @@ type Argument struct {
 }
 
 type Data struct {
-        Where Position
+        where Position
         
         name  string
         what  Type
@@ -138,7 +138,7 @@ const (
 )
 
 type Typedef struct {
-        Where Position
+        where Position
         
         name     string
         inherits Type
@@ -149,6 +149,8 @@ type Typedef struct {
         modeExternal Mode
 }
 
+/* addData adds a data section to a module
+ */
 func (module *Module) addData (data *Data) (err error) {
         if data == nil { return }
         _, exists := module.datas[data.name]
@@ -161,6 +163,8 @@ func (module *Module) addData (data *Data) (err error) {
         return nil
 }
 
+/* addTypedef adds a type section to a module
+ */
 func (module *Module) addTypedef (typedef *Typedef) (err error) {
         if typedef == nil { return }
         _, exists := module.typedefs[typedef.name]
@@ -173,6 +177,8 @@ func (module *Module) addTypedef (typedef *Typedef) (err error) {
         return nil
 }
 
+/* addFunction adds a function section to a module
+ */
 func (module *Module) addFunction (function *Function) (err error) {
         if function == nil { return }
         _, exists := module.functions[function.name]
@@ -183,4 +189,34 @@ func (module *Module) addFunction (function *Function) (err error) {
 
         module.functions[function.name] = function
         return nil
+}
+
+func (where *Position) PrintError () {
+        
+}
+
+/* GetMetadata returns the metadata fields of the module
+ */
+func (module *Module) GetMetadata () (
+        name    string,
+        author  string,
+        license string,
+        imports []string,
+) {
+        return module.name,
+                module.author,
+                module.license,
+                module.imports
+}
+
+/* GetSections returns all sections within the module.
+ */
+func (module *Module) GetSections () (
+        functions map[string] *Function,
+        typedefs  map[string] *Typedef,
+        datas     map[string] *Data,
+) {
+        return module.functions,
+                module.typedefs,
+                module.datas
 }
