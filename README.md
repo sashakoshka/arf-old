@@ -48,6 +48,7 @@ These are things, in order, that have already been done or are planned:
 - [ ] Semantic analysis
 - [ ] Transpiling to C
 - [ ] Compile any file with options by passing command line arguments
+- [ ] Rewrite compiler in Arf (this current one is a mess...)
 - [ ] Convert Arf module to Arf header file (so we can have shared libraries)
 - [ ] Convert C header file to Arf header file
 - [ ] Modular Arf standard library (written in Arf)
@@ -58,7 +59,7 @@ These are things, in order, that have already been done or are planned:
   - [ ] Multithreading
 
 These aren't necessary for making Arf a full-fledged language, but they would
-make it actually useful:
+make it more useful:
 
 - [ ] Produce LLVM bytecode instead of C
 - [ ] Option to use C stdlib for memory allocation backend, for compatibility
