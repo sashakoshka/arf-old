@@ -63,6 +63,7 @@ func Parse (
                 directory: moduleDir,
                 module:    &Module {
                         name:      moduleBase,
+                        path:      moduleDir + moduleBase,
                         functions: make(map[string] *Function),
                         typedefs:  make(map[string] *Typedef),
                         datas:     make(map[string] *Data),

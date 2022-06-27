@@ -11,6 +11,7 @@ type Position struct {
 
 type Module struct {
         where Position
+        path  string
 
         name    string
         author  string
@@ -217,4 +218,10 @@ func (module *Module) GetSections () (
         return module.functions,
                 module.typedefs,
                 module.datas
+}
+
+/* GetPath returns the module's path on the filesystem.
+ */
+func (module *Module) GetPath () (path string) {
+        return module.path
 }
