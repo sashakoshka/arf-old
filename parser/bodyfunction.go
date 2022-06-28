@@ -12,9 +12,9 @@ func (parser *Parser) parseBodyFunction (
 ) {
         section = &Function {
                 where:   parser.embedPosition(),
-                inputs:  make(map[string] *Data),
-                outputs: make(map[string] *Data),
-                root:    &Block {},
+                root:   &Block {
+                        datas: make(map[string] *Data),
+                },
         }
 
         if !parser.expect(lexer.TokenKindPermission) {
@@ -88,8 +88,7 @@ func (parser *Parser) parseBodyFunction (
         }
 
         // function body
-        block, err := parser.parseBodyFunctionBlock(0)
-        section.root = block
+        _, err = parser.parseBodyFunctionBlock(0, section.root)
         return
 }
 
@@ -104,17 +103,18 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
         switch parser.token.StringValue {
         case "@":
                 // these modes are mainly being set for semantic value
-                section.self = &Data {
+                self := &Data {
                         where:        parser.embedPosition(),
                         modeInternal: ModeRead,
                         modeExternal: ModeDeny,
                 }
-                section.self.name,
-                section.self.what,
+                
+                self.name,
+                self.what,
                 _, err =  parser.parseDeclaration()
                 if err != nil { return err }
                 
-                if section.self.what.points == nil {
+                if self.what.points == nil {
                         parser.printError (
                                 parser.token.Column,
                                 "method reciever must be a",
@@ -122,12 +122,32 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                         break
                 }
                 
-                if section.self.what.mutable {
+                if self.what.mutable {
                         parser.printError (
                                 parser.token.Column,
                                 "method reciever cannot be",
                                 "mutable")
                         break
+                }
+
+                if len(self.what.name.trail) > 1 {
+                        parser.printError (
+                                parser.token.Column,
+                                "cannot use member selection in method",
+                                "reciever type, type name cannot have dots in",
+                                "it")
+                }
+                
+                // add self to function
+                if section.root.addData(self) {
+                        section.self = self.name
+                        section.selfType = self.what.points.name.trail[0]
+                        section.isMember = true
+                } else {
+                        parser.printError (
+                                parser.token.Column,
+                                "a variable with the name", self.name, "is",
+                                "already defined in this function")
                 }
                 break
 
@@ -148,12 +168,22 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                         break
                 }
 
-                section.inputs[input.name] = input
                 if parser.endOfLine() { break}
-                
+
+                // get default value for input
                 input.value,
                 _, err = parser.parseDefaultValues(1)
                 if err != nil { return err }
+
+                // add input to function
+                if section.root.addData(input) {
+                        section.inputs = append(section.inputs, input.name)
+                } else {
+                        parser.printError (
+                                parser.token.Column,
+                                "a variable with the name", input.name, "is",
+                                "already defined in this function")
+                }
                 break
         
         case "<":
@@ -168,20 +198,27 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 if output.what.mutable {
                         parser.printWarning (
                                 parser.token.Column,
-                                "you don't need to mark return",
-                                "values as mutable, they will",
-                                "be anyways")
+                                "immutable output, this is useless. consider",
+                                "marking as :mut")
                         break
                 }
-                
-                output.what.mutable = true
 
-                section.outputs[output.name] = output
                 if parser.endOfLine() { break}
-                
+
+                // get default value for output
                 output.value,
                 _, err = parser.parseDefaultValues(1)
                 if err != nil { return err }
+
+                // add output to function
+                if section.root.addData(output) {
+                        section.outputs = append(section.outputs, output.name)
+                } else {
+                        parser.printError (
+                                parser.token.Column,
+                                "a variable with the name", output.name, "is",
+                                "already defined in this function")
+                }
                 break
 
         default:
@@ -197,17 +234,23 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
 }
 
 /* parseBodyFunctionBlock parses a block of function calls. This is done
- * recursively, so it will also parse sub-blocks.
+ * recursively, so it will also parse sub-blocks. If preExisting is non-nil,
+ * this function will parse into it.
  */
 func (parser *Parser) parseBodyFunctionBlock (
         parentIndent int,
+        preExisting  *Block,
 ) (
         block *Block,
         err error,
 ) {
-        block = &Block {
-                where: parser.embedPosition(),
-                datas: make(map[string] *Data),
+        if preExisting != nil {
+                block = preExisting
+        } else {
+                block = &Block {
+                        where: parser.embedPosition(),
+                        datas: make(map[string] *Data),
+                }
         }
 
         if (parser.line.Indent > 4) {
@@ -248,7 +291,7 @@ func (parser *Parser) parseBodyFunctionBlock (
                         // we are parsing a block
                         var childBlock *Block
                         childBlock, err = parser.parseBodyFunctionBlock (
-                                parentIndent + 1)
+                                parentIndent + 1, nil)
                         if err != nil { return }
 
                         block.items = append (block.items, BlockOrStatement {
@@ -541,8 +584,8 @@ func (parser *Parser) parseBodyFunctionIdentifierOrDeclaration (
         if exists {
                 parser.printError (
                         parser.token.Column,
-                        "a variable with the name", name, "was defined",
-                        "previously")
+                        "a variable with the name", name, "ia already defined",
+                        "in this block")
                 return nil, false, err
         }
         

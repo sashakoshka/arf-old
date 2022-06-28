@@ -25,11 +25,14 @@ type Module struct {
 
 type Function struct {
         where Position
+
+        isMember bool
+        self     string
+        selfType string
         
-        self     *Data        
         name     string
-        inputs   map[string] *Data
-        outputs  map[string] *Data
+        inputs   []string
+        outputs  []string
         root     *Block
 
         modeInternal Mode
@@ -160,6 +163,19 @@ func (module *Module) addData (data *Data) (err error) {
 
         module.datas[data.name] = data
         return nil
+}
+
+/* addData adds a data section to a block
+ */
+func (block *Block) addData (data *Data) (worked bool) {
+        if data == nil { return }
+        _, exists := block.datas[data.name]
+        if exists {
+                return false
+        }
+
+        block.datas[data.name] = data
+        return true
 }
 
 /* addTypedef adds a type section to a module

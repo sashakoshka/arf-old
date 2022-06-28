@@ -92,32 +92,36 @@ func (function *Function) Dump () {
 
         fmt.Println("", function.name)
 
-        if function.self != nil {
+        if function.isMember {
                 fmt.Println (
                         "        @",
-                        function.self.name + ":" +
-                        function.self.what.ToString())
+                        function.self + ":" +
+                        function.root.datas[function.self].what.ToString())
         }
 
         for _, input := range function.inputs {
+                inputData := function.root.datas[input]
+                
                 fmt.Println (
                         "        >",
-                        input.name + ":" +
-                        input.what.ToString())
+                        inputData.name + ":" +
+                        inputData.what.ToString())
                         
-                for _, value := range input.value {
+                for _, value := range inputData.value {
                         printIndent(2)
-                        fmt.Println (value)
+                        fmt.Println(value)
                 }
         }
 
         for _, output := range function.outputs {
+                ouputData := function.root.datas[output]
+                
                 fmt.Println (
                         "        <",
-                        output.name + ":" +
-                        output.what.ToString())
+                        ouputData.name + ":" +
+                        ouputData.what.ToString())
                         
-                for _, value := range output.value {
+                for _, value := range ouputData.value {
                         printIndent(2)
                         fmt.Println(value)
                 }

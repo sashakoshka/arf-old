@@ -1,0 +1,12 @@
+:arf
+module member
+require "io"
+---
+
+type rr Greeter:obj
+        wn greeting:String
+
+func rr greet
+        @ greeter:{Greeter}
+        ---
+        io.println greeter.greeting
