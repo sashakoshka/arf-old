@@ -13,7 +13,7 @@ func (parser *Parser) parseBodyFunction (
         section = &Function {
                 where:   parser.embedPosition(),
                 root:   &Block {
-                        datas: make(map[string] *Data),
+                        variables: make(map[string] *Variable),
                 },
         }
 
@@ -102,12 +102,7 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
 ) {
         switch parser.token.StringValue {
         case "@":
-                // these modes are mainly being set for semantic value
-                self := &Data {
-                        where:        parser.embedPosition(),
-                        modeInternal: ModeRead,
-                        modeExternal: ModeDeny,
-                }
+                self := &Variable { where: parser.embedPosition() }
                 
                 self.name,
                 self.what,
@@ -139,7 +134,7 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 }
                 
                 // add self to function
-                if section.root.addData(self) {
+                if section.root.addVariable(self) {
                         section.self = self.name
                         section.selfType = self.what.points.name.trail[0]
                         section.isMember = true
@@ -152,9 +147,8 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 break
 
         case ">":
-                input := &Data {
-                        where: parser.embedPosition(),
-                }
+                input := &Variable { where: parser.embedPosition() }
+                
                 input.name,
                 input.what,
                 _, err =  parser.parseDeclaration()
@@ -176,7 +170,7 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 if err != nil { return err }
 
                 // add input to function
-                if section.root.addData(input) {
+                if section.root.addVariable(input) {
                         section.inputs = append(section.inputs, input.name)
                 } else {
                         parser.printError (
@@ -187,9 +181,8 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 break
         
         case "<":
-                output := &Data {
-                        where: parser.embedPosition(),
-                }
+                output := &Variable { where: parser.embedPosition() }
+                
                 output.name,
                 output.what,
                 _, err =  parser.parseDeclaration()
@@ -211,7 +204,7 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 if err != nil { return err }
 
                 // add output to function
-                if section.root.addData(output) {
+                if section.root.addVariable(output) {
                         section.outputs = append(section.outputs, output.name)
                 } else {
                         parser.printError (
@@ -247,11 +240,10 @@ func (parser *Parser) parseBodyFunctionBlock (
         if preExisting != nil {
                 block = preExisting
         } else {
-                block = &Block {
-                        where: parser.embedPosition(),
-                        datas: make(map[string] *Data),
-                }
+                block = &Block { variables: make(map[string] *Variable) }
         }
+        
+        block.where = parser.embedPosition()
 
         if (parser.line.Indent > 4) {
                 parser.printWarning (
@@ -578,25 +570,21 @@ func (parser *Parser) parseBodyFunctionIdentifierOrDeclaration (
         what, worked, err := parser.parseType()
         if err != nil || !worked { return nil, false, err }
 
-        // TODO: check all scopes above this
         name := trail[0]
-        _, exists := parent.datas[name]
-        if exists {
+        variable := &Variable {
+                where: parser.embedPosition(),
+                
+                name: name,
+                what: what,
+        }
+
+        // TODO: check all scopes above this
+        if !parent.addVariable(variable) {
                 parser.printError (
                         parser.token.Column,
                         "a variable with the name", name, "ia already defined",
                         "in this block")
                 return nil, false, err
-        }
-        
-        parent.datas[name] = &Data {
-                where: parser.embedPosition(),
-                
-                name: name,
-                what: what,
-
-                modeInternal: ModeWrite,
-                modeExternal: ModeDeny,
         }
         return identifier, true, nil
 }

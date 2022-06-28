@@ -66,8 +66,8 @@ type BlockOrStatement struct {
 type Block struct {
         where Position
         
-        datas map[string] *Data
-        items []BlockOrStatement
+        variables map[string] *Variable
+        items     []BlockOrStatement
 }
 
 type Statement struct {
@@ -118,12 +118,20 @@ type Argument struct {
         floatValue         float64
 }
 
+type Variable struct {
+        where Position
+
+        name  string
+        what  Type
+        value []interface { }
+}
+
 type Data struct {
         where Position
         
         name  string
         what  Type
-        value []interface {}
+        value []interface { }
 
         modeInternal Mode
         modeExternal Mode
@@ -165,16 +173,16 @@ func (module *Module) addData (data *Data) (err error) {
         return nil
 }
 
-/* addData adds a data section to a block
+/* addVariable adds a variable to a block
  */
-func (block *Block) addData (data *Data) (worked bool) {
-        if data == nil { return }
-        _, exists := block.datas[data.name]
+func (block *Block) addVariable (variable *Variable) (worked bool) {
+        if variable == nil { return }
+        _, exists := block.variables[variable.name]
         if exists {
                 return false
         }
 
-        block.datas[data.name] = data
+        block.variables[variable.name] = variable
         return true
 }
 

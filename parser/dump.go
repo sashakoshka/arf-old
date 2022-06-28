@@ -96,11 +96,11 @@ func (function *Function) Dump () {
                 fmt.Println (
                         "        @",
                         function.self + ":" +
-                        function.root.datas[function.self].what.ToString())
+                        function.root.variables[function.self].what.ToString())
         }
 
         for _, input := range function.inputs {
-                inputData := function.root.datas[input]
+                inputData := function.root.variables[input]
                 
                 fmt.Println (
                         "        >",
@@ -114,7 +114,7 @@ func (function *Function) Dump () {
         }
 
         for _, output := range function.outputs {
-                ouputData := function.root.datas[output]
+                ouputData := function.root.variables[output]
                 
                 fmt.Println (
                         "        <",
@@ -139,9 +139,12 @@ func (function *Function) Dump () {
 }
 
 func (block *Block) Dump (indent int) {
-        for _, data := range block.datas {
+        for _, variable := range block.variables {
                 printIndent(indent)
-                fmt.Println("let", data.name + ":" + data.what.ToString())
+                fmt.Println (
+                        "let",
+                        variable.name + ":" +
+                        variable.what.ToString())
         }
 
         for _, item := range block.items {
