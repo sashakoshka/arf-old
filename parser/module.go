@@ -4,9 +4,9 @@ import "errors"
 import "github.com/sashakoshka/arf/lineFile"
 
 type Position struct {
-        Row    int
-        Column int
-        File   *lineFile.LineFile
+        row    int
+        column int
+        file   *lineFile.LineFile
 }
 
 type Module struct {
@@ -193,7 +193,7 @@ func (module *Module) addTypedef (typedef *Typedef) (err error) {
         _, exists := module.typedefs[typedef.name]
         if exists {
                 return errors.New (
-                        "data section " + typedef.name + "already exists")
+                        "data section " + typedef.name + " already exists")
         }
 
         module.typedefs[typedef.name] = typedef
@@ -207,15 +207,23 @@ func (module *Module) addFunction (function *Function) (err error) {
         _, exists := module.functions[function.name]
         if exists {
                 return errors.New (
-                        "data section " + function.name + "already exists")
+                        "data section " + function.name + " already exists")
         }
 
         module.functions[function.name] = function
         return nil
 }
 
-func (where *Position) PrintError () {
-        
+func (where *Position) PrintWarning (cause ...interface {}) {
+        where.file.PrintWarning(where.column, where.row, cause...)
+}
+
+func (where *Position) PrintError (cause ...interface {}) {
+        where.file.PrintError(where.column, where.row, cause...)
+}
+
+func (where *Position) PrintFatal (err error) {
+        where.file.PrintFatal(err)
 }
 
 /* GetMetadata returns the metadata fields of the module

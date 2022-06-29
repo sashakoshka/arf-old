@@ -327,8 +327,8 @@ func (parser *Parser) printGeneralFatal (err error) {
  */
 func (parser *Parser) embedPosition () (position Position) {
         return Position {
-                Column: parser.token.Column,
-                Row:    parser.line.Row,
-                File:   parser.file,
+                column: parser.token.Column,
+                row:    parser.line.Row,
+                file:   parser.file,
         }
 }
