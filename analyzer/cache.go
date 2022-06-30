@@ -3,24 +3,23 @@ package analyzer
 import "github.com/sashakoshka/arf/parser"
 
 type CacheItem struct {
+        // All modules in the cache are assumed to have been skimmed.
         module *parser.Module
-        skimmed bool
 }
 
 var cache = make(map[string] CacheItem)
 
-func AddCache (module *parser.Module, skimmed bool) {
+func CacheModule (module *parser.Module, skimmed bool) {
         cache[module.GetPath()] = CacheItem {
                 module:  module,
-                skimmed: skimmed,
         }
 }
 
-func GetCache (path string, skimmedOK bool) (module *parser.Module) {
-        cacheItem, exists := cache[path]
-        if !exists { return }
-        if !skimmedOK && cacheItem.skimmed { return }
+func GetCache (path string) (item CacheItem, exists bool) {
+        item, exists = cache[path]
+        return
+}
 
-        module = cacheItem.module
-        return 
+func (item CacheItem) GetModule () (module *parser.Module) {
+        return item.module
 }
