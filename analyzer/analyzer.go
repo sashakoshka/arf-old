@@ -3,19 +3,20 @@ package analyzer
 import "github.com/sashakoshka/arf/parser"
 
 type Analyzer struct {
-        
+        warnCount  int
+        errorCount int
 }
 
 func Analyze (
         module *parser.Module,
 ) (
-        warnCount int,
+        tree       SemanticTree,
+        warnCount  int,
         errorCount int,
-        err error,
 ) {
-        // analyzer := Analyzer {
-                // 
-        // }
+        analyzer := Analyzer {
+                
+        }
 
         // TODO
         // 1. analyze type definitions
@@ -26,5 +27,26 @@ func Analyze (
         // is, skim-parse the module and add it to the cache. then, recursively
         // analyze and resolve the referenced item and add it to the cache.
 
-        return
+        return tree, analyzer.warnCount, analyzer.errorCount
+}
+
+func (analyzer *Analyzer) PrintWarning (
+        reporter parser.ErrorReporter,
+        cause ...interface { },
+) {
+        reporter.PrintWarning(cause)
+}
+
+func (analyzer *Analyzer) PrintError (
+        reporter parser.ErrorReporter,
+        cause ...interface { },
+) {
+        reporter.PrintError(cause)
+}
+
+func (analyzer *Analyzer) PrintFatal (
+        reporter parser.ErrorReporter,
+        cause ...interface { },
+) {
+        reporter.PrintFatal(cause)
 }

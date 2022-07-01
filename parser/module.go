@@ -3,6 +3,12 @@ package parser
 import "errors"
 import "github.com/sashakoshka/arf/lineFile"
 
+type ErrorReporter interface {
+        PrintWarning (cause ...interface { })
+        PrintError   (cause ...interface { })
+        PrintFatal   (cause ...interface { })
+}
+
 type Position struct {
         row    int
         column int
@@ -222,8 +228,8 @@ func (where *Position) PrintError (cause ...interface {}) {
         where.file.PrintError(where.column, where.row, cause...)
 }
 
-func (where *Position) PrintFatal (err error) {
-        where.file.PrintFatal(err)
+func (where *Position) PrintFatal (cause ...interface {}) {
+        where.file.PrintFatal(cause)
 }
 
 /* GetMetadata returns the metadata fields of the module

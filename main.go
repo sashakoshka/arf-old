@@ -22,11 +22,12 @@ func main () {
         totalWarnings += parserWarnings
         totalErrors   += parserErrors
         if err != nil { os.Exit(1) }
-        module.Dump()
 
-        analyzerWarnings, analyzerErrors, err := analyzer.Analyze(module)
+        tree, analyzerWarnings, analyzerErrors := analyzer.Analyze(module)
         totalWarnings += analyzerWarnings
         totalErrors   += analyzerErrors
+
+        tree.Dump()
         
         fmt.Println("(i)", totalWarnings, "warnings and", totalErrors, "errors")
 }
