@@ -9,6 +9,14 @@ type ErrorReporter interface {
         PrintFatal   (cause ...interface { })
 }
 
+type Mode int
+
+const (
+        ModeDeny Mode = iota
+        ModeRead
+        ModeWrite
+)
+
 type Position struct {
         row    int
         column int
@@ -16,6 +24,11 @@ type Position struct {
 }
 
 type Name string
+
+type Permissions struct {
+        modeInternal Mode
+        modeExternal Mode 
+}
 
 type Module struct {
         Position
@@ -32,9 +45,31 @@ type Module struct {
         datas     map[string] *Data
 }
 
+type Typedef struct {
+        Position
+        Name
+        Permissions
+        
+        inherits Type
+
+        members  []*Data
+}
+
+type Data struct {
+        Position
+        Name
+        Permissions
+        
+        what  Type
+        value []interface { }
+
+        external bool
+}
+
 type Function struct {
         Position
         Name
+        Permissions
 
         isMember bool
         self     string
@@ -43,9 +78,6 @@ type Function struct {
         inputs   []string
         outputs  []string
         root     *Block
-
-        modeInternal Mode
-        modeExternal Mode
 
         external bool
 }
@@ -135,39 +167,6 @@ type Variable struct {
         value []interface { }
 }
 
-type Data struct {
-        Position
-        Name
-        
-        what  Type
-        value []interface { }
-
-        modeInternal Mode
-        modeExternal Mode
-
-        external bool
-}
-
-type Mode int
-
-const (
-        ModeDeny Mode = iota
-        ModeRead
-        ModeWrite
-)
-
-type Typedef struct {
-        Position
-        Name
-        
-        inherits Type
-
-        members  []*Data
-
-        modeInternal Mode
-        modeExternal Mode
-}
-
 func (position *Position) SetPosition (newPoisition Position) {
         *position = newPoisition
 }
@@ -178,6 +177,22 @@ func (name *Name) SetName (newName string) {
 
 func (name *Name) GetName () (nameString string) {
         return string(*name)
+}
+
+func (permissions *Permissions) SetInternalPermission (mode Mode) {
+        permissions.modeInternal = mode
+}
+
+func (permissions *Permissions) SetExternalPermission (mode Mode) {
+        permissions.modeExternal = mode
+}
+
+func (permissions *Permissions) GetInternalPermission () (mode Mode) {
+        return permissions.modeInternal
+}
+
+func (permissions *Permissions) GetExternalPermission () (mode Mode) {
+        return permissions.modeExternal
 }
 
 /* addData adds a data section to a module

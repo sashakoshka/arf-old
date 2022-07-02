@@ -20,6 +20,15 @@ func Analyze (
 
         // TODO
         // 1. analyze type definitions
+
+        moduleFunctions,
+        moduleTypedefs,
+        moduleDatas := module.GetSections()
+
+        for _, typedef := range moduleTypedefs {
+                
+        }
+        
         // 2. analyze data sections
         // 3. analyze functions
 
