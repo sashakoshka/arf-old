@@ -11,11 +11,11 @@ func (parser *Parser) parseBodyFunction (
         err error,
 ) {
         section = &Function {
-                where:   parser.embedPosition(),
-                root:   &Block {
+                root: &Block {
                         variables: make(map[string] *Variable),
                 },
         }
+        section.SetPosition(parser.embedPosition())
 
         if !parser.expect(lexer.TokenKindPermission) {
                  return nil, parser.skipBodySection()
@@ -102,7 +102,8 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
 ) {
         switch parser.token.StringValue {
         case "@":
-                self := &Variable { where: parser.embedPosition() }
+                self := &Variable { }
+                self.SetPosition(parser.embedPosition())
                 
                 self.name,
                 self.what,
@@ -147,7 +148,8 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 break
 
         case ">":
-                input := &Variable { where: parser.embedPosition() }
+                input := &Variable { }
+                input.SetPosition(parser.embedPosition())
                 
                 input.name,
                 input.what,
@@ -181,8 +183,9 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 break
         
         case "<":
-                output := &Variable { where: parser.embedPosition() }
-                
+                output := &Variable { }
+                output.SetPosition(parser.embedPosition())
+        
                 output.name,
                 output.what,
                 _, err =  parser.parseDeclaration()
@@ -243,7 +246,7 @@ func (parser *Parser) parseBodyFunctionBlock (
                 block = &Block { variables: make(map[string] *Variable) }
         }
         
-        block.where = parser.embedPosition()
+        block.SetPosition(parser.embedPosition())
 
         if (parser.line.Indent > 4) {
                 parser.printWarning (
@@ -314,9 +317,8 @@ func (parser *Parser) parseBodyFunctionStatement (
         worked bool,
         err error,
 ) {       
-        statement = &Statement {
-                where: parser.embedPosition(),
-        }
+        statement = &Statement { }
+        statement.SetPosition(parser.embedPosition())
 
         match := parser.expect (
                 lexer.TokenKindLBracket,
@@ -545,10 +547,9 @@ func (parser *Parser) parseBodyFunctionIdentifierOrDeclaration (
                 return nil, false, nil
         }
 
-        identifier = &Identifier {
-                where: parser.embedPosition(),
-                trail: trail,
-        }
+        identifier = &Identifier { trail: trail }
+        identifier.SetPosition(parser.embedPosition())
+        
         if (parser.token.Kind != lexer.TokenKindColon) {
                 return identifier, true, nil
         }
@@ -572,11 +573,10 @@ func (parser *Parser) parseBodyFunctionIdentifierOrDeclaration (
 
         name := trail[0]
         variable := &Variable {
-                where: parser.embedPosition(),
-                
                 name: name,
                 what: what,
         }
+        variable.SetPosition(parser.embedPosition())
 
         // TODO: check all scopes above this
         if !parent.addVariable(variable) {

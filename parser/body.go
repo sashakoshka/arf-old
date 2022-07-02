@@ -63,9 +63,8 @@ func (parser *Parser) parseBodyData (
         section *Data,
         err error,
 ) {
-        section = &Data {
-                where: parser.embedPosition(),
-        }
+        section = &Data { }
+        section.SetPosition(parser.embedPosition())
 
         if !parser.expect(lexer.TokenKindPermission) {
                 return nil, parser.skipBodySection()
@@ -108,9 +107,8 @@ func (parser *Parser) parseBodyTypedef (
         section *Typedef,
         err error,
 ) {
-        section = &Typedef {
-                where: parser.embedPosition(),
-        }
+        section = &Typedef { }
+        section.SetPosition(parser.embedPosition())
 
         if !parser.expect(lexer.TokenKindPermission) {
                  return nil, parser.skipBodySection()

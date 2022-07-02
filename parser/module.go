@@ -16,7 +16,7 @@ type Position struct {
 }
 
 type Module struct {
-        where Position
+        Position
         path  string
 
         name    string
@@ -30,7 +30,7 @@ type Module struct {
 }
 
 type Function struct {
-        where Position
+        Position
 
         isMember bool
         self     string
@@ -48,13 +48,13 @@ type Function struct {
 }
 
 type Identifier struct {
-        where Position
+        Position
         
         trail []string
 }
 
 type Type struct {
-        where Position
+        Position
         
         name    Identifier
         points  *Type
@@ -63,21 +63,21 @@ type Type struct {
 }
 
 type BlockOrStatement struct {
-        where Position
+        Position
         
         block     *Block
         statement *Statement
 }
 
 type Block struct {
-        where Position
+        Position
         
         variables map[string] *Variable
         items     []BlockOrStatement
 }
 
 type Statement struct {
-        where Position
+        Position
         
         command   Identifier
         arguments []Argument
@@ -89,7 +89,7 @@ type Statement struct {
 }
 
 type Dereference struct {
-        where Position
+        Position
         
         dereferences *Argument
         offset       uint64
@@ -110,7 +110,7 @@ const (
 )
 
 type Argument struct {
-        where Position
+        Position
         
         kind ArgumentKind
         
@@ -125,7 +125,7 @@ type Argument struct {
 }
 
 type Variable struct {
-        where Position
+        Position
 
         name  string
         what  Type
@@ -133,7 +133,7 @@ type Variable struct {
 }
 
 type Data struct {
-        where Position
+        Position
         
         name  string
         what  Type
@@ -154,7 +154,7 @@ const (
 )
 
 type Typedef struct {
-        where Position
+        Position
         
         name     string
         inherits Type
@@ -163,6 +163,10 @@ type Typedef struct {
 
         modeInternal Mode
         modeExternal Mode
+}
+
+func (position *Position) SetPosition (newPoisition Position) {
+        *position = newPoisition
 }
 
 /* addData adds a data section to a module
