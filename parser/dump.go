@@ -2,7 +2,7 @@ package parser
 
 import "fmt"
 
-func (module *Module) Dump () {
+func (module Module) Dump () {
         fmt.Println(":arf")
         fmt.Println("module", module.GetName())
         fmt.Println("author", "\"" + module.author + "\"")
@@ -47,7 +47,7 @@ func (module *Module) Dump () {
         }
 }
 
-func (data *Data) Dump (indent int) {
+func (data Data) Dump (indent int) {
         printIndent(indent)
         if indent == 0 { fmt.Print("data ") }
 
@@ -75,7 +75,7 @@ func (data *Data) Dump (indent int) {
         }
 }
 
-func (function *Function) Dump () {
+func (function Function) Dump () {
         fmt.Print("func ")
 
         switch function.modeInternal {
@@ -139,7 +139,7 @@ func (function *Function) Dump () {
         }
 }
 
-func (block *Block) Dump (indent int) {
+func (block Block) Dump (indent int) {
         for _, variable := range block.variables {
                 printIndent(indent)
                 fmt.Println (
@@ -158,7 +158,7 @@ func (block *Block) Dump (indent int) {
         }
 }
 
-func (statement *Statement) Dump (indent int) {
+func (statement Statement) Dump (indent int) {
         printIndent(indent)
         fmt.Print("[")
         if (statement.external) {
@@ -180,7 +180,7 @@ func (statement *Statement) Dump (indent int) {
         }
 }
 
-func (dereference *Dereference) Dump (indent int) {
+func (dereference Dereference) Dump (indent int) {
         printIndent(indent)
         fmt.Print("{")
         dereference.dereferences.Dump(indent)
@@ -189,7 +189,7 @@ func (dereference *Dereference) Dump (indent int) {
         fmt.Print(dereference.offset, " }")
 }
 
-func (argument *Argument) Dump (indent int) {
+func (argument Argument) Dump (indent int) {
         fmt.Println()
         if argument.kind == ArgumentKindStatement {
                 argument.statementValue.Dump(indent + 1)
