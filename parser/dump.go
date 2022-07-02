@@ -4,7 +4,7 @@ import "fmt"
 
 func (module *Module) Dump () {
         fmt.Println(":arf")
-        fmt.Println("module", module.name)
+        fmt.Println("module", module.GetName())
         fmt.Println("author", "\"" + module.author + "\"")
         fmt.Println("license", "\"" + module.license + "\"")
         
@@ -34,7 +34,7 @@ func (module *Module) Dump () {
                 }
 
                 fmt.Println (
-                        "", section.name +
+                        "", section.GetName() +
                         ":" + section.inherits.ToString())
 
                 for _, member := range section.members {
@@ -63,7 +63,7 @@ func (data *Data) Dump (indent int) {
                 case ModeWrite: fmt.Print("w")
         }
 
-        fmt.Println("", data.name + ":" + data.what.ToString())
+        fmt.Println("", data.GetName() + ":" + data.what.ToString())
 
         if data.external {
                 fmt.Println("        external")
@@ -90,7 +90,7 @@ func (function *Function) Dump () {
                 case ModeWrite: fmt.Print("w")
         }
 
-        fmt.Println("", function.name)
+        fmt.Println("", function.GetName())
 
         if function.isMember {
                 fmt.Println (
@@ -104,7 +104,7 @@ func (function *Function) Dump () {
                 
                 fmt.Println (
                         "        >",
-                        inputData.name + ":" +
+                        inputData.GetName() + ":" +
                         inputData.what.ToString())
                         
                 for _, value := range inputData.value {
@@ -118,7 +118,7 @@ func (function *Function) Dump () {
                 
                 fmt.Println (
                         "        <",
-                        ouputData.name + ":" +
+                        ouputData.GetName() + ":" +
                         ouputData.what.ToString())
                         
                 for _, value := range ouputData.value {
@@ -143,7 +143,7 @@ func (block *Block) Dump (indent int) {
                 printIndent(indent)
                 fmt.Println (
                         "let",
-                        variable.name + ":" +
+                        variable.GetName() + ":" +
                         variable.what.ToString())
         }
 

@@ -62,13 +62,13 @@ func Parse (
         parser := &Parser {
                 directory: moduleDir,
                 module:    &Module {
-                        name:      moduleBase,
                         path:      moduleDir + moduleBase,
                         functions: make(map[string] *Function),
                         typedefs:  make(map[string] *Typedef),
                         datas:     make(map[string] *Data),
                 },
         }
+        parser.module.SetName(moduleBase)
 
         if !validate.ValidateName(moduleBase) {
                 err = errors.New (
@@ -87,7 +87,9 @@ func Parse (
         for _, candidate := range candidates {
                 if candidate.IsDir() { continue }
                 filePath := moduleDir + "/" + candidate.Name()
-                if getModuleName(filePath) != parser.module.name { continue }
+                if getModuleName(filePath) != parser.module.GetName() {
+                        continue
+                }
 
                 fmt.Println("(i)", "found file", filePath)
                 foundFile = true
@@ -111,7 +113,7 @@ func Parse (
  */
 func (parser *Parser) parseFile (filePath string, skim bool) (err error) {
         // open file safely
-        parser.file, err = lineFile.Open(filePath, parser.module.name)
+        parser.file, err = lineFile.Open(filePath, parser.module.GetName())
         if err != nil {
                 parser.printFatal(err)
                 return
@@ -119,7 +121,7 @@ func (parser *Parser) parseFile (filePath string, skim bool) (err error) {
         
         lines, nWarn, nError, err := lexer.Tokenize (
                 parser.file,
-                parser.module.name)
+                parser.module.GetName())
 
         if err != nil { return err }
         if len(lines) == 0 {
@@ -317,7 +319,7 @@ func (parser *Parser) printGeneralFatal (err error) {
         fmt.Println (
                 "\033[31mXXX\033[0m",
                 "\033[90min\033[0m",
-                parser.module.name)
+                parser.module.GetName())
         fmt.Println("   ", err)
 }
 

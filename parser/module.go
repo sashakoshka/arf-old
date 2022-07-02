@@ -15,11 +15,14 @@ type Position struct {
         file   *lineFile.LineFile
 }
 
+type Name string
+
 type Module struct {
         Position
+        Name
+        
         path  string
 
-        name    string
         author  string
         license string
         imports []string
@@ -31,12 +34,12 @@ type Module struct {
 
 type Function struct {
         Position
+        Name
 
         isMember bool
         self     string
         selfType string
         
-        name     string
         inputs   []string
         outputs  []string
         root     *Block
@@ -126,16 +129,16 @@ type Argument struct {
 
 type Variable struct {
         Position
-
-        name  string
+        Name
+        
         what  Type
         value []interface { }
 }
 
 type Data struct {
         Position
+        Name
         
-        name  string
         what  Type
         value []interface { }
 
@@ -155,8 +158,8 @@ const (
 
 type Typedef struct {
         Position
+        Name
         
-        name     string
         inherits Type
 
         members  []*Data
@@ -169,17 +172,25 @@ func (position *Position) SetPosition (newPoisition Position) {
         *position = newPoisition
 }
 
+func (name *Name) SetName (newName string) {
+        *name = Name(newName)
+}
+
+func (name *Name) GetName () (nameString string) {
+        return string(*name)
+}
+
 /* addData adds a data section to a module
  */
 func (module *Module) addData (data *Data) (err error) {
         if data == nil { return }
-        _, exists := module.datas[data.name]
+        _, exists := module.datas[data.GetName()]
         if exists {
                 return errors.New (
-                        "data section " + data.name + "already exists")
+                        "data section " + data.GetName() + "already exists")
         }
 
-        module.datas[data.name] = data
+        module.datas[data.GetName()] = data
         return nil
 }
 
@@ -187,12 +198,12 @@ func (module *Module) addData (data *Data) (err error) {
  */
 func (block *Block) addVariable (variable *Variable) (worked bool) {
         if variable == nil { return }
-        _, exists := block.variables[variable.name]
+        _, exists := block.variables[variable.GetName()]
         if exists {
                 return false
         }
 
-        block.variables[variable.name] = variable
+        block.variables[variable.GetName()] = variable
         return true
 }
 
@@ -200,13 +211,13 @@ func (block *Block) addVariable (variable *Variable) (worked bool) {
  */
 func (module *Module) addTypedef (typedef *Typedef) (err error) {
         if typedef == nil { return }
-        _, exists := module.typedefs[typedef.name]
+        _, exists := module.typedefs[typedef.GetName()]
         if exists {
                 return errors.New (
-                        "data section " + typedef.name + " already exists")
+                        "data section " + typedef.GetName() + " already exists")
         }
 
-        module.typedefs[typedef.name] = typedef
+        module.typedefs[typedef.GetName()] = typedef
         return nil
 }
 
@@ -214,13 +225,14 @@ func (module *Module) addTypedef (typedef *Typedef) (err error) {
  */
 func (module *Module) addFunction (function *Function) (err error) {
         if function == nil { return }
-        _, exists := module.functions[function.name]
+        _, exists := module.functions[function.GetName()]
         if exists {
                 return errors.New (
-                        "data section " + function.name + " already exists")
+                        "data section " + function.GetName() +
+                        " already exists")
         }
 
-        module.functions[function.name] = function
+        module.functions[function.GetName()] = function
         return nil
 }
 
@@ -239,13 +251,11 @@ func (where *Position) PrintFatal (cause ...interface {}) {
 /* GetMetadata returns the metadata fields of the module
  */
 func (module *Module) GetMetadata () (
-        name    string,
         author  string,
         license string,
         imports []string,
 ) {
-        return module.name,
-                module.author,
+        return module.author,
                 module.license,
                 module.imports
 }

@@ -36,7 +36,7 @@ func (parser *Parser) parseBodyFunction (
                  return nil, parser.skipBodySection()
         }
 
-        section.name = parser.token.StringValue
+        section.SetName(parser.token.StringValue)
 
         parser.nextToken()
         if !parser.expect() { return nil, parser.skipBodySection() }
@@ -104,11 +104,11 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
         case "@":
                 self := &Variable { }
                 self.SetPosition(parser.embedPosition())
-                
-                self.name,
-                self.what,
-                _, err =  parser.parseDeclaration()
+
+                var name string
+                name, self.what, _, err =  parser.parseDeclaration()
                 if err != nil { return err }
+                self.SetName(name)
                 
                 if self.what.points == nil {
                         parser.printError (
@@ -136,25 +136,25 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 
                 // add self to function
                 if section.root.addVariable(self) {
-                        section.self = self.name
+                        section.self = self.GetName()
                         section.selfType = self.what.points.name.trail[0]
                         section.isMember = true
                 } else {
                         parser.printError (
                                 parser.token.Column,
-                                "a variable with the name", self.name, "is",
-                                "already defined in this function")
+                                "a variable with the name", self.GetName(),
+                                "is already defined in this function")
                 }
                 break
 
         case ">":
                 input := &Variable { }
                 input.SetPosition(parser.embedPosition())
-                
-                input.name,
-                input.what,
-                _, err =  parser.parseDeclaration()
+
+                var name string
+                name, input.what, _, err =  parser.parseDeclaration()
                 if err != nil { return err }
+                input.SetName(name)
 
                 if input.what.mutable {
                         parser.printError (
@@ -173,12 +173,12 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
 
                 // add input to function
                 if section.root.addVariable(input) {
-                        section.inputs = append(section.inputs, input.name)
+                        section.inputs = append(section.inputs, input.GetName())
                 } else {
                         parser.printError (
                                 parser.token.Column,
-                                "a variable with the name", input.name, "is",
-                                "already defined in this function")
+                                "a variable with the name", input.GetName(),
+                                "is already defined in this function")
                 }
                 break
         
@@ -186,10 +186,10 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 output := &Variable { }
                 output.SetPosition(parser.embedPosition())
         
-                output.name,
-                output.what,
-                _, err =  parser.parseDeclaration()
+                var name string
+                name, output.what, _, err =  parser.parseDeclaration()
                 if err != nil { return err }
+                output.SetName(name)
 
                 if output.what.mutable {
                         parser.printWarning (
@@ -208,12 +208,14 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
 
                 // add output to function
                 if section.root.addVariable(output) {
-                        section.outputs = append(section.outputs, output.name)
+                        section.outputs = append (
+                                section.outputs,
+                                output.GetName())
                 } else {
                         parser.printError (
                                 parser.token.Column,
-                                "a variable with the name", output.name, "is",
-                                "already defined in this function")
+                                "a variable with the name", output.GetName(),
+                                "is already defined in this function")
                 }
                 break
 
@@ -572,10 +574,8 @@ func (parser *Parser) parseBodyFunctionIdentifierOrDeclaration (
         if err != nil || !worked { return nil, false, err }
 
         name := trail[0]
-        variable := &Variable {
-                name: name,
-                what: what,
-        }
+        variable := &Variable { what: what }
+        variable.SetName(name)
         variable.SetPosition(parser.embedPosition())
 
         // TODO: check all scopes above this
