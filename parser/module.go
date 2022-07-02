@@ -198,8 +198,20 @@ func (what *Type) SetType (newType Type) {
         *what = newType
 }
 
-func (what *Type) GetType () (*Type) {
-        return what
+func (what *Type) GetType () (Type) {
+        return *what
+}
+
+func (what *Type) GetTypeData () (
+        name    Identifier,
+        points *Type,
+        items   uint64,
+        mutable bool,
+) {
+        return what.name,
+                what.points,
+                what.items,
+                what.mutable
 }
 
 /* addData adds a data section to a module

@@ -224,7 +224,7 @@ func (argument *Argument) Dump (indent int) {
         }
 }
 
-func (what *Type) ToString () (description string) {
+func (what Type) ToString () (description string) {
         if what.points != nil {
                 description += "{" + what.points.ToString()
                 if what.items > 1 {
@@ -242,7 +242,7 @@ func (what *Type) ToString () (description string) {
         return
 }
 
-func (identifier *Identifier) ToString () (description string) {
+func (identifier Identifier) ToString () (description string) {
         if len(identifier.trail) < 1 { return "EMPTY.IDENTIFIER"}
         description = identifier.trail[0]
         if len(identifier.trail) < 2 { return }
