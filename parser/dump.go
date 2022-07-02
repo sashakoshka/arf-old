@@ -35,7 +35,7 @@ func (module *Module) Dump () {
 
                 fmt.Println (
                         "", section.GetName() +
-                        ":" + section.inherits.ToString())
+                        ":" + section.GetType().ToString())
 
                 for _, member := range section.members {
                         member.Dump(1)
@@ -63,7 +63,7 @@ func (data *Data) Dump (indent int) {
                 case ModeWrite: fmt.Print("w")
         }
 
-        fmt.Println("", data.GetName() + ":" + data.what.ToString())
+        fmt.Println("", data.GetName() + ":" + data.GetType().ToString())
 
         if data.external {
                 fmt.Println("        external")
@@ -96,7 +96,8 @@ func (function *Function) Dump () {
                 fmt.Println (
                         "        @",
                         function.self + ":" +
-                        function.root.variables[function.self].what.ToString())
+                        function.root.variables[function.self].
+                                GetType().ToString())
         }
 
         for _, input := range function.inputs {
@@ -105,7 +106,7 @@ func (function *Function) Dump () {
                 fmt.Println (
                         "        >",
                         inputData.GetName() + ":" +
-                        inputData.what.ToString())
+                        inputData.GetType().ToString())
                         
                 for _, value := range inputData.value {
                         printIndent(2)
@@ -119,7 +120,7 @@ func (function *Function) Dump () {
                 fmt.Println (
                         "        <",
                         ouputData.GetName() + ":" +
-                        ouputData.what.ToString())
+                        ouputData.GetType().ToString())
                         
                 for _, value := range ouputData.value {
                         printIndent(2)
@@ -144,7 +145,7 @@ func (block *Block) Dump (indent int) {
                 fmt.Println (
                         "let",
                         variable.GetName() + ":" +
-                        variable.what.ToString())
+                        variable.GetType().ToString())
         }
 
         for _, item := range block.items {

@@ -106,11 +106,13 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 self.SetPosition(parser.embedPosition())
 
                 var name string
-                name, self.what, _, err =  parser.parseDeclaration()
+                var what Type
+                name, what, _, err =  parser.parseDeclaration()
                 if err != nil { return err }
                 self.SetName(name)
+                self.SetType(what)
                 
-                if self.what.points == nil {
+                if what.points == nil {
                         parser.printError (
                                 parser.token.Column,
                                 "method reciever must be a",
@@ -118,7 +120,7 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                         break
                 }
                 
-                if self.what.mutable {
+                if what.mutable {
                         parser.printError (
                                 parser.token.Column,
                                 "method reciever cannot be",
@@ -126,7 +128,7 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                         break
                 }
 
-                if len(self.what.name.trail) > 1 {
+                if len(what.name.trail) > 1 {
                         parser.printError (
                                 parser.token.Column,
                                 "cannot use member selection in method",
@@ -137,7 +139,7 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 // add self to function
                 if section.root.addVariable(self) {
                         section.self = self.GetName()
-                        section.selfType = self.what.points.name.trail[0]
+                        section.selfType = what.points.name.trail[0]
                         section.isMember = true
                 } else {
                         parser.printError (
@@ -152,11 +154,13 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 input.SetPosition(parser.embedPosition())
 
                 var name string
-                name, input.what, _, err =  parser.parseDeclaration()
+                var what Type
+                name, what, _, err =  parser.parseDeclaration()
                 if err != nil { return err }
                 input.SetName(name)
+                input.SetType(what)
 
-                if input.what.mutable {
+                if what.mutable {
                         parser.printError (
                                 parser.token.Column,
                                 "function arguments cannot be",
@@ -187,11 +191,13 @@ func (parser *Parser) parseBodyFunctionArgumentFor (
                 output.SetPosition(parser.embedPosition())
         
                 var name string
-                name, output.what, _, err =  parser.parseDeclaration()
+                var what Type
+                name, what, _, err =  parser.parseDeclaration()
                 if err != nil { return err }
                 output.SetName(name)
+                output.SetType(what)
 
-                if output.what.mutable {
+                if what.mutable {
                         parser.printWarning (
                                 parser.token.Column,
                                 "immutable output, this is useless. consider",
@@ -574,8 +580,9 @@ func (parser *Parser) parseBodyFunctionIdentifierOrDeclaration (
         if err != nil || !worked { return nil, false, err }
 
         name := trail[0]
-        variable := &Variable { what: what }
+        variable := &Variable { }
         variable.SetName(name)
+        variable.SetType(what)
         variable.SetPosition(parser.embedPosition())
 
         // TODO: check all scopes above this

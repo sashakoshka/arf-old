@@ -82,8 +82,10 @@ func (parser *Parser) parseBodyData (
         
         worked := false
         var name string
-        name, section.what, worked, err = parser.parseDeclaration()
+        var what Type
+        name, what, worked, err = parser.parseDeclaration()
         section.SetName(name)
+        section.SetType(what)
         if !worked {
                 return nil, parser.skipBodySection()
         }
@@ -126,9 +128,11 @@ func (parser *Parser) parseBodyTypedef (
         }
 
         worked := false
-        var name string
-        name, section.inherits, worked, err = parser.parseDeclaration()
+        var name     string
+        var inherits Type
+        name, inherits, worked, err = parser.parseDeclaration()
         section.SetName(name)
+        section.SetType(inherits)
         if !worked {
                  return nil, parser.skipBodySection()
         }

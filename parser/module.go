@@ -49,8 +49,7 @@ type Typedef struct {
         Position
         Name
         Permissions
-        
-        inherits Type
+        Type
 
         members  []*Data
 }
@@ -59,8 +58,8 @@ type Data struct {
         Position
         Name
         Permissions
+        Type
         
-        what  Type
         value []interface { }
 
         external bool
@@ -162,8 +161,8 @@ type Argument struct {
 type Variable struct {
         Position
         Name
+        Type
         
-        what  Type
         value []interface { }
 }
 
@@ -181,7 +180,7 @@ func (name *Name) GetName () (nameString string) {
 
 func (permissions *Permissions) SetInternalPermission (mode Mode) {
         permissions.modeInternal = mode
-}
+} 
 
 func (permissions *Permissions) SetExternalPermission (mode Mode) {
         permissions.modeExternal = mode
@@ -193,6 +192,14 @@ func (permissions *Permissions) GetInternalPermission () (mode Mode) {
 
 func (permissions *Permissions) GetExternalPermission () (mode Mode) {
         return permissions.modeExternal
+}
+
+func (what *Type) SetType (newType Type) {
+        *what = newType
+}
+
+func (what *Type) GetType () (*Type) {
+        return what
 }
 
 /* addData adds a data section to a module
