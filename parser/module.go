@@ -51,7 +51,7 @@ type Typedef struct {
         Permissions
         Type
 
-        members  []*Data
+        members map[string] *Data
 }
 
 type Data struct {
@@ -212,6 +212,22 @@ func (what *Type) GetTypeData () (
                 what.points,
                 what.items,
                 what.mutable
+}
+
+// func (typedef *Typedef) GetMembers () (members map[string] *Data) {
+        // return typedef.members
+// }
+
+func (typedef *Typedef) addMember (data *Data) (err error) {
+        if data == nil { return }
+        _, exists := typedef.members[data.GetName()]
+        if exists {
+                return errors.New (
+                        "member " + data.GetName() + "already exists")
+        }
+
+        typedef.members[data.GetName()] = data
+        return nil
 }
 
 /* addData adds a data section to a module

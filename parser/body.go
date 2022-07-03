@@ -148,7 +148,11 @@ func (parser *Parser) parseBodyTypedef (
                 if err != nil { return nil, err }
                 if member == nil { return nil, nil }
 
-                section.members = append(section.members, member)
+                err = section.addMember(member)
+                if err != nil {
+                        parser.printError(parser.token.Column, err)
+                        return nil, parser.skipBodySection()
+                }
         }
 }
 

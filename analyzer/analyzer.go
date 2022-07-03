@@ -25,8 +25,8 @@ func Analyze (
         moduleTypedefs,
         moduleDatas := module.GetSections()
 
-        for _, typedef := range moduleTypedefs {
-                
+        for _, moduleTypedef := range moduleTypedefs {
+                typedef := Typedef {}
         }
         
         // 2. analyze data sections
