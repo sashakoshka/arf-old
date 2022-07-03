@@ -214,9 +214,9 @@ func (what *Type) GetTypeData () (
                 what.mutable
 }
 
-// func (typedef *Typedef) GetMembers () (members map[string] *Data) {
-        // return typedef.members
-// }
+func (typedef *Typedef) GetMembers () (members map[string] *Data) {
+        return typedef.members
+}
 
 func (typedef *Typedef) addMember (data *Data) (err error) {
         if data == nil { return }
