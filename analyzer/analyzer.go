@@ -3,6 +3,10 @@ package analyzer
 import "github.com/sashakoshka/arf/parser"
 
 type Analyzer struct {
+        moduleName string
+
+        tree *SemanticTree
+        
         warnCount  int
         errorCount int
 }
@@ -10,25 +14,21 @@ type Analyzer struct {
 func Analyze (
         module *parser.Module,
 ) (
-        tree       SemanticTree,
+        tree      *SemanticTree,
         warnCount  int,
         errorCount int,
 ) {
         analyzer := Analyzer {
-                
+                moduleName: module.GetName(),
+                tree:      &SemanticTree {
+                        typedefs:  make(map[string] *Typedef),
+                        datas:     make(map[string] *Data),
+                        functions: make(map[string] *Function),
+                },
         }
 
         // TODO
         // 1. analyze type definitions
-
-        moduleFunctions,
-        moduleTypedefs,
-        moduleDatas := module.GetSections()
-
-        for _, moduleTypedef := range moduleTypedefs {
-                typedef := Typedef {}
-        }
-        
         // 2. analyze data sections
         // 3. analyze functions
 
