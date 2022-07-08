@@ -29,6 +29,20 @@ func Analyze (
 
         // TODO
         // 1. analyze type definitions
+
+        _,
+        moduleTypedefs,
+        _ := module.GetSections()
+
+        typedefChecklist := Checklist { }
+        for _, moduleTypedef := range moduleTypedefs {
+                if typedefChecklist.IsDone(moduleTypedef.GetName()) {
+                        continue
+                }
+
+                analyzer.analyzeTypedef(analyzer.moduleName, moduleTypedef)
+        }
+        
         // 2. analyze data sections
         // 3. analyze functions
 
@@ -37,6 +51,23 @@ func Analyze (
         // analyze and resolve the referenced item and add it to the cache.
 
         return tree, analyzer.warnCount, analyzer.errorCount
+}
+
+func (analyzer *Analyzer) analyzeTypedef (
+        moduleName     string,
+        moduleTypedef *parser.Typedef,
+) {
+        typedef := Typedef {
+                module: moduleName,
+        }
+
+        typedef.SetName(moduleTypedef.GetName())
+        typedef.SetInternalPermission(moduleTypedef.GetInternalPermission())
+        typedef.SetExternalPermission(moduleTypedef.GetExternalPermission())
+
+        // TODO: analyze inherits
+        // TODO: analyze members
+
 }
 
 func (analyzer *Analyzer) PrintWarning (
