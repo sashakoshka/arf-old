@@ -1,6 +1,7 @@
 package analyzer
 
 import "fmt"
+import "github.com/sashakoshka/arf/parser"
 
 func (tree *SemanticTree) Dump () {
         fmt.Println("typedefs")
@@ -11,18 +12,18 @@ func (tree *SemanticTree) Dump () {
 
 func (typedef *Typedef) Dump () {
         printIndent(1)
-        fmt.Println(typedef.module + "." + typedef.name, "is an")
+        fmt.Println(typedef.module + "." + typedef.GetName(), "is an")
 
-        switch typedef.modeInternal {
-                case ModeDeny:  fmt.Print("n")
-                case ModeRead:  fmt.Print("r")
-                case ModeWrite: fmt.Print("w")
+        switch typedef.GetInternalPermission() {
+                case parser.ModeDeny:  fmt.Print("n")
+                case parser.ModeRead:  fmt.Print("r")
+                case parser.ModeWrite: fmt.Print("w")
         }
         
-        switch typedef.modeExternal {
-                case ModeDeny:  fmt.Print("n")
-                case ModeRead:  fmt.Print("r")
-                case ModeWrite: fmt.Print("w")
+        switch typedef.GetExternalPermission() {
+                case parser.ModeDeny:  fmt.Print("n")
+                case parser.ModeRead:  fmt.Print("r")
+                case parser.ModeWrite: fmt.Print("w")
         }
         
         fmt.Println(typedef.inherits.ToString())
@@ -40,7 +41,7 @@ func (what *Type) ToString () (description string) {
         if what.mutable   { description += "mutable "    }
         if what.points    { description += "pointer to " }
         if what.items > 0 { description += fmt.Sprint(what.items, "") }
-        description += what.typedef.name
+        description += what.typedef.GetName()
         return
 }
 
