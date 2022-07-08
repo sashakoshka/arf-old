@@ -1,5 +1,7 @@
 package analyzer
 
+import "github.com/sashakoshka/arf/parser"
+
 type SemanticTree struct {
         typedefs  map[string] *Typedef
         datas     map[string] *Data
@@ -7,14 +9,13 @@ type SemanticTree struct {
 }
 
 type Typedef struct {
+        parser.Permissions
+        parser.Name
+
         module    string
-        name      string
         inherits *Type
 
         members []*Data
-
-        modeInternal Mode
-        modeExternal Mode
 }
 
 type Type struct {
@@ -32,11 +33,3 @@ type Data struct {
 type Function struct {
         
 }
-
-type Mode int
-
-const (
-        ModeDeny Mode = iota
-        ModeRead
-        ModeWrite
-)
