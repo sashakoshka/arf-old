@@ -38,8 +38,12 @@ func (data *Data) Dump (indent int ) {
 }
 
 func (what *Type) ToString () (description string) {
-        if what.mutable   { description += "mutable "    }
-        if what.points    { description += "pointer to " }
+        if what.mutable { description += "mutable " }
+        if what.points != nil {
+                description += "pointer to "
+                description += "(" + what.points.ToString() + ")"
+        }
+        description += " "
         if what.items > 0 { description += fmt.Sprint(what.items, "") }
         description += what.typedef.GetName()
         return
