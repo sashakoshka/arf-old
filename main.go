@@ -10,24 +10,15 @@ func main () {
                 fmt.Println("specify module path")
                 os.Exit(1)
         }
-
-        var totalWarnings int
-        var totalErrors   int
         
-        module,
-        parserWarnings,
-        parserErrors,
-        err := parser.Parse(os.Args[1], false)
-        
-        totalWarnings += parserWarnings
-        totalErrors   += parserErrors
-        if err != nil { os.Exit(1) }
+        module := parser.GetModule(os.Args[1], false)
 
-        tree, analyzerWarnings, analyzerErrors := analyzer.Analyze(module)
-        totalWarnings += analyzerWarnings
-        totalErrors   += analyzerErrors
+        tree, _, _ := analyzer.Analyze(module)
+        // totalWarnings += analyzerWarnings
+        // totalErrors   += analyzerErrors
 
         tree.Dump()
-        
-        fmt.Println("(i)", totalWarnings, "warnings and", totalErrors, "errors")
+
+        // TODO: query parser and analyzer module for total errors
+        // fmt.Println("(i)", totalWarnings, "warnings and", totalErrors, "errors")
 }

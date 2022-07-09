@@ -1,5 +1,7 @@
 package parser
 
+import "os"
+
 type CacheItem struct {
         wasSkimmed bool
         module    *Module
@@ -14,8 +16,13 @@ func cacheModule (module *Module, wasSkimmed bool) {
         }
 }
 
-func GetCache (path string, needFull bool) (item CacheItem, exists bool) {
+func GetModule (path string, skim bool) (item CacheItem, exists bool) {
         item, exists = cache[path]
+        if exists {
+                module, _, _, err := parse(path, skim)
+                if err != nil { os.Exit(1) }
+                cacheModule(module, skim)
+        }
         return
 }
 
