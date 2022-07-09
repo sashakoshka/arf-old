@@ -27,7 +27,7 @@ type Type struct {
         typedef *Typedef
         mutable  bool
 
-        points bool
+        points *Type
         items  uint64
 }
 

@@ -40,13 +40,13 @@ type Parser struct {
         errorCount int
 }
 
-/* Parse takes in a module path, and returns a Module. The file at the end of
+/* parse takes in a module path, and returns a Module. The file at the end of
  * the path should not, as it is a virtual concept that is searched for in the
  * path's base directory. All files with a matching module feild are parsed into
  * the module that gets returned. It's like golang packages, except we are
  * calling them modules because we aren't insane.
  */
-func Parse (
+func parse (
         modulePath string,
         skim bool,
 ) (

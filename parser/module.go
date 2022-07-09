@@ -178,6 +178,10 @@ func (name *Name) GetName () (nameString string) {
         return string(*name)
 }
 
+func (identifier *Identifier) GetTrail () (trail []string) {
+        return identifier.trail
+}
+
 func (permissions *Permissions) SetInternalPermission (mode Mode) {
         permissions.modeInternal = mode
 } 

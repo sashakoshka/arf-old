@@ -13,7 +13,7 @@ func main () {
         
         module := parser.GetModule(os.Args[1], false)
 
-        tree, _, _ := analyzer.Analyze(module)
+        tree, _, _ := analyzer.Analyze(module.GetName())
         // totalWarnings += analyzerWarnings
         // totalErrors   += analyzerErrors
 
