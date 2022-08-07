@@ -2,6 +2,8 @@
 
 # ![ARF](assets/logo.svg)
 
+**This is being rewritten**
+
 All the dangerous fun of C, and you can do it in style.
 
 Arf is an extremely modular, minimalist programming language. Its syntax and
