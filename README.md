@@ -2,7 +2,9 @@
 
 # ![ARF](assets/logo.svg)
 
-**This is being rewritten**
+**This is being rewritten.**
+
+[Click here to go to the new repository](https://git.tebibyte.media/sashakoshka/arf).
 
 All the dangerous fun of C, and you can do it in style.
 
