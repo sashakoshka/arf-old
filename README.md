@@ -4,7 +4,7 @@
 
 **This is being rewritten.**
 
-[Click here to go to the new repository](https://git.tebibyte.media/sashakoshka/arf).
+[Click here to go to the new repository](https://git.tebibyte.media/arf/arf).
 
 All the dangerous fun of C, and you can do it in style.
 
